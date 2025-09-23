@@ -54,17 +54,10 @@ function openTool(toolType) {
             fileTypes.textContent = 'Supported: .srt files';
             fileInput.accept = '.srt';
             break;
-        case 'srt-creator':
-            modalTitle.textContent = 'Create New SRT';
-            fileTypes.textContent = 'No file upload needed';
-            document.getElementById('uploadArea').innerHTML = `
-                <svg class="w-12 h-12 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                </svg>
-                <p class="text-gray-400 mb-2">Create a new SRT file from scratch</p>
-                <p class="text-sm text-gray-500">Click Process to start the editor</p>
-            `;
-            document.getElementById('processBtn').disabled = false;
+        case 'bcc-to-srt':
+            modalTitle.textContent = 'Convert BCC to SRT';
+            fileTypes.textContent = 'Supported: .bcc files (Bilibili)';
+            fileInput.accept = '.bcc';
             break;
     }
 
@@ -109,7 +102,7 @@ function closeModal() {
 document.addEventListener('DOMContentLoaded', function() {
     // Use event delegation for dynamically created elements
     document.addEventListener('click', function(e) {
-        if (e.target.closest('#uploadArea') && currentTool !== 'srt-creator') {
+        if (e.target.closest('#uploadArea')) {
             const fileInput = document.getElementById('fileInput');
             if (fileInput) {
                 fileInput.click();
@@ -138,7 +131,7 @@ document.addEventListener('DOMContentLoaded', function() {
             e.preventDefault();
             uploadArea.classList.remove('border-fcp-accent');
 
-            if (currentTool === 'srt-creator') return;
+            // No special handling needed for BCC converter
 
             const files = e.dataTransfer.files;
             if (files.length > 0) {
@@ -217,8 +210,8 @@ function processFile() {
         case 'srt-cleaner':
             processSrtCleaner(uploadedFile[0]);
             break;
-        case 'srt-creator':
-            openSrtCreator();
+        case 'bcc-to-srt':
+            processBccToSrt(uploadedFile[0]);
             break;
     }
 }
@@ -388,10 +381,22 @@ async function processSrtCleaner(file) {
     reader.readAsText(file);
 }
 
-function openSrtCreator() {
-    // Placeholder for SRT creator
-    alert('SRT creator interface coming soon!');
-    closeModal();
+async function processBccToSrt(file) {
+    const reader = new FileReader();
+    reader.onload = async function(e) {
+        try {
+            const content = e.target.result;
+            const srtContent = await convertWithPython(content, 'bcc-to-srt');
+            downloadFile(srtContent, file.name.replace(/\.[^/.]+$/, ".srt"), 'text/plain');
+            closeModal();
+        } catch (error) {
+            console.error('Conversion error:', error);
+            alert('Error converting BCC file: ' + error.message);
+            document.getElementById('processBtn').textContent = 'Process';
+            document.getElementById('processBtn').disabled = false;
+        }
+    };
+    reader.readAsText(file);
 }
 
 function downloadFile(content, filename, mimeType) {

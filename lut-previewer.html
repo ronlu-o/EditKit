@@ -3,17 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LUT Previewer - FCP Workflow Tools</title>
+    <title>LUT Previewer - EditKit</title>
+    <link rel="apple-touch-icon" sizes="180x180" href="favicon_io/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon_io/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="favicon_io/favicon-16x16.png">
+    <link rel="manifest" href="favicon_io/site.webmanifest">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     colors: {
-                        'fcp-dark': '#1a1a1a',
-                        'fcp-gray': '#2d2d2d',
-                        'fcp-accent': '#6b46c1',
-                        'fcp-red': '#dc2626',
+                        'fcp-dark': '#1C1C1E',
+                        'fcp-gray': '#2A2A2D',
+                        'fcp-border': '#3A3A3E',
+                        'fcp-text': '#F2F2F7',
+                        'fcp-text-secondary': '#A1A1AA',
+                        'fcp-accent': '#0A84FF',
+                        'fcp-success': '#30D158',
+                        'fcp-destructive': '#FF453A',
+                    },
+                    fontFamily: {
+                        'sans': ['Poppins', 'ui-sans-serif', 'system-ui', 'sans-serif'],
                     }
                 }
             }
@@ -34,26 +48,26 @@
             width: 20px;
             height: 20px;
             border-radius: 50%;
-            background: #6b46c1;
+            background: #0A84FF;
             cursor: pointer;
-            border: 2px solid #1a1a1a;
+            border: 2px solid #1C1C1E;
         }
 
         .slider::-webkit-slider-thumb:hover {
-            background: #7c3aed;
+            background: #007AFF;
         }
 
         .slider::-moz-range-thumb {
             width: 20px;
             height: 20px;
             border-radius: 50%;
-            background: #6b46c1;
+            background: #0A84FF;
             cursor: pointer;
-            border: 2px solid #1a1a1a;
+            border: 2px solid #1C1C1E;
         }
 
         .slider::-moz-range-thumb:hover {
-            background: #7c3aed;
+            background: #007AFF;
         }
 
         /* Canvas container styling */
@@ -70,8 +84,8 @@
 
         /* Drag and drop styling */
         .drag-over {
-            border-color: #6b46c1 !important;
-            background-color: rgba(107, 70, 193, 0.1);
+            border-color: #0A84FF !important;
+            background-color: rgba(10, 132, 255, 0.1);
         }
 
         /* LUT item animations */
@@ -92,30 +106,35 @@
 
         /* Error state */
         .error {
-            border-color: #dc2626 !important;
-            background-color: rgba(220, 38, 38, 0.1);
+            border-color: #FF453A !important;
+            background-color: rgba(255, 69, 58, 0.1);
         }
     </style>
 </head>
-<body class="bg-fcp-dark text-gray-100 font-sans">
+<body class="bg-fcp-dark text-fcp-text font-sans">
     <!-- Navigation -->
-    <nav class="bg-fcp-gray border-b border-gray-700">
+    <nav class="bg-fcp-gray border-b border-fcp-border">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between h-16">
                 <div class="flex items-center">
-                    <a href="index.html" class="text-xl font-bold text-fcp-accent">FCP Workflow Tools</a>
+                    <a href="index.html" class="flex items-center space-x-3 group transition-transform hover:scale-105">
+                        <img src="logo.png" alt="EditKit" class="h-10 w-10 transition-transform group-hover:rotate-3">
+                        <span class="text-xl font-semibold tracking-tight group-hover:text-opacity-80 transition-colors">
+                            <span class="text-fcp-text">Edit</span><span class="text-blue-400">Kit</span>
+                        </span>
+                    </a>
                 </div>
                 <div class="hidden md:block">
                     <div class="ml-10 flex items-baseline space-x-4">
-                        <a href="index.html" class="px-3 py-2 rounded-md text-sm font-medium text-gray-300 hover:text-white hover:bg-gray-700 transition-colors">Home</a>
-                        <a href="lut-previewer.html" class="px-3 py-2 rounded-md text-sm font-medium text-white bg-gray-700">LUT Previewer</a>
-                        <a href="subtitles.html" class="px-3 py-2 rounded-md text-sm font-medium text-gray-300 hover:text-white hover:bg-gray-700 transition-colors">Subtitles</a>
-                        <a href="index.html#project-manager" class="px-3 py-2 rounded-md text-sm font-medium text-gray-300 hover:text-white hover:bg-gray-700 transition-colors">Project Manager</a>
+                        <a href="index.html" class="px-3 py-2 rounded-md text-sm font-medium text-gray-300 hover:text-fcp-text hover:bg-gray-700 transition-colors">Home</a>
+                        <a href="lut-previewer.html" class="px-3 py-2 rounded-md text-sm font-medium text-fcp-text bg-gray-700">LUT Previewer</a>
+                        <a href="subtitles.html" class="px-3 py-2 rounded-md text-sm font-medium text-gray-300 hover:text-fcp-text hover:bg-gray-700 transition-colors">Subtitles</a>
+                        <a href="index.html#project-manager" class="px-3 py-2 rounded-md text-sm font-medium text-gray-300 hover:text-fcp-text hover:bg-gray-700 transition-colors">Project Manager</a>
                     </div>
                 </div>
                 <!-- Mobile menu button -->
                 <div class="md:hidden">
-                    <button id="mobile-menu-button" class="bg-gray-800 inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-white hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-white">
+                    <button id="mobile-menu-button" class="bg-gray-800 inline-flex items-center justify-center p-2 rounded-md text-fcp-text-secondary hover:text-fcp-text hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-white">
                         <svg class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
                         </svg>
@@ -126,10 +145,10 @@
         <!-- Mobile menu -->
         <div id="mobile-menu" class="md:hidden hidden">
             <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-gray-800">
-                <a href="index.html" class="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-white hover:bg-gray-700">Home</a>
-                <a href="lut-previewer.html" class="block px-3 py-2 rounded-md text-base font-medium text-white bg-gray-700">LUT Previewer</a>
-                <a href="subtitles.html" class="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-white hover:bg-gray-700">Subtitles</a>
-                <a href="index.html#project-manager" class="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-white hover:bg-gray-700">Project Manager</a>
+                <a href="index.html" class="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-fcp-text hover:bg-gray-700">Home</a>
+                <a href="lut-previewer.html" class="block px-3 py-2 rounded-md text-base font-medium text-fcp-text bg-gray-700">LUT Previewer</a>
+                <a href="subtitles.html" class="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-fcp-text hover:bg-gray-700">Subtitles</a>
+                <a href="index.html#project-manager" class="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-fcp-text hover:bg-gray-700">Project Manager</a>
             </div>
         </div>
     </nav>
@@ -138,8 +157,8 @@
     <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <!-- Header -->
         <div class="text-center py-8">
-            <h1 class="text-4xl font-bold text-white mb-4">LUT Previewer</h1>
-            <p class="text-xl text-gray-400 max-w-3xl mx-auto">Upload an image and apply multiple .cube LUT files to preview color grading effects</p>
+            <h1 class="text-4xl font-bold text-fcp-text mb-4">LUT Previewer</h1>
+            <p class="text-xl text-fcp-text-secondary max-w-3xl mx-auto">Upload an image and apply multiple .cube LUT files to preview color grading effects</p>
         </div>
 
         <!-- Main Interface -->
@@ -147,31 +166,31 @@
             <!-- Left Panel - Image Upload & Preview -->
             <div class="lg:col-span-2">
                 <!-- Image Upload Area -->
-                <div class="bg-fcp-gray p-6 rounded-lg border border-gray-700 mb-6">
-                    <h3 class="text-lg font-semibold text-white mb-4">Upload Image</h3>
+                <div class="bg-fcp-gray p-6 rounded-lg border border-fcp-border mb-6">
+                    <h3 class="text-lg font-semibold text-fcp-text mb-4">Upload Image</h3>
                     <div id="imageUploadArea" class="border-2 border-dashed border-gray-600 rounded-lg p-6 text-center hover:border-fcp-accent transition-colors cursor-pointer">
-                        <svg class="w-8 h-8 text-gray-400 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="w-8 h-8 text-fcp-text-secondary mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                         </svg>
-                        <p class="text-gray-400 mb-1">Drop your image here or click to browse</p>
+                        <p class="text-fcp-text-secondary mb-1">Drop your image here or click to browse</p>
                         <p class="text-sm text-gray-    500">Supports JPG, PNG, WEBP</p>
                         <input type="file" id="imageInput" class="hidden" accept="image/*">
                     </div>
                 </div>
 
                 <!-- Image Preview Area -->
-                <div class="bg-fcp-gray rounded-lg border border-gray-700 overflow-hidden">
-                    <div class="p-4 border-b border-gray-700">
+                <div class="bg-fcp-gray rounded-lg border border-fcp-border overflow-hidden">
+                    <div class="p-4 border-b border-fcp-border">
                         <div class="flex items-center justify-between">
-                            <h3 class="text-lg font-semibold text-white">Preview</h3>
+                            <h3 class="text-lg font-semibold text-fcp-text">Preview</h3>
                             <div class="flex items-center space-x-4">
                                 <button id="resetBtn" class="px-3 py-1 text-sm bg-gray-700 text-gray-300 rounded hover:bg-gray-600 transition-colors" disabled>Reset</button>
-                                <button id="downloadBtn" class="px-3 py-1 text-sm bg-fcp-accent text-white rounded hover:bg-opacity-80 transition-colors" disabled>Download</button>
+                                <button id="downloadBtn" class="px-3 py-1 text-sm bg-fcp-accent text-fcp-text rounded hover:bg-opacity-80 transition-colors" disabled>Download</button>
                             </div>
                         </div>
                     </div>
                     <div id="canvasContainer" class="relative bg-black min-h-96 flex items-center justify-center">
-                        <div id="uploadPrompt" class="text-center text-gray-400">
+                        <div id="uploadPrompt" class="text-center text-fcp-text-secondary">
                             <svg class="w-16 h-16 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                             </svg>
@@ -185,23 +204,23 @@
             <!-- Right Panel - LUT Controls -->
             <div class="space-y-6">
                 <!-- LUT Upload Area -->
-                <div class="bg-fcp-gray p-6 rounded-lg border border-gray-700">
-                    <h3 class="text-lg font-semibold text-white mb-4">Upload LUT Files</h3>
+                <div class="bg-fcp-gray p-6 rounded-lg border border-fcp-border">
+                    <h3 class="text-lg font-semibold text-fcp-text mb-4">Upload LUT Files</h3>
                     <div id="lutUploadArea" class="border-2 border-dashed border-gray-600 rounded-lg p-6 text-center hover:border-fcp-accent transition-colors cursor-pointer">
-                        <svg class="w-8 h-8 text-gray-400 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="w-8 h-8 text-fcp-text-secondary mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
                         </svg>
-                        <p class="text-gray-400 text-sm mb-1">Drop .cube files here</p>
+                        <p class="text-fcp-text-secondary text-sm mb-1">Drop .cube files here</p>
                         <p class="text-xs text-gray-500">Support multiple files</p>
                         <input type="file" id="lutInput" class="hidden" accept=".cube" multiple>
                     </div>
                 </div>
 
                 <!-- Applied LUTs List -->
-                <div class="bg-fcp-gray p-6 rounded-lg border border-gray-700">
-                    <h3 class="text-lg font-semibold text-white mb-4">Applied LUTs</h3>
+                <div class="bg-fcp-gray p-6 rounded-lg border border-fcp-border">
+                    <h3 class="text-lg font-semibold text-fcp-text mb-4">Applied LUTs</h3>
                     <div id="lutList" class="space-y-3">
-                        <div class="text-center text-gray-400 py-8">
+                        <div class="text-center text-fcp-text-secondary py-8">
                             <svg class="w-8 h-8 mx-auto mb-2 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
                             </svg>
@@ -211,21 +230,21 @@
                 </div>
 
                 <!-- Global Controls -->
-                <div class="bg-fcp-gray p-6 rounded-lg border border-gray-700">
-                    <h3 class="text-lg font-semibold text-white mb-4">Global Controls</h3>
+                <div class="bg-fcp-gray p-6 rounded-lg border border-fcp-border">
+                    <h3 class="text-lg font-semibold text-fcp-text mb-4">Global Controls</h3>
                     <div class="space-y-4">
                         <div>
                             <label class="block text-sm font-medium text-gray-300 mb-2">Overall Intensity</label>
                             <input type="range" id="globalIntensity" min="0" max="100" value="100"
                                    class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer slider">
-                            <div class="flex justify-between text-xs text-gray-400 mt-1">
+                            <div class="flex justify-between text-xs text-fcp-text-secondary mt-1">
                                 <span>0%</span>
                                 <span id="globalIntensityValue">100%</span>
                                 <span>100%</span>
                             </div>
                         </div>
                         <div class="flex space-x-2">
-                            <button id="enableAllBtn" class="flex-1 px-3 py-2 text-sm bg-fcp-accent text-white rounded hover:bg-opacity-80 transition-colors">Enable All</button>
+                            <button id="enableAllBtn" class="flex-1 px-3 py-2 text-sm bg-fcp-accent text-fcp-text rounded hover:bg-opacity-80 transition-colors">Enable All</button>
                             <button id="disableAllBtn" class="flex-1 px-3 py-2 text-sm bg-gray-700 text-gray-300 rounded hover:bg-gray-600 transition-colors">Disable All</button>
                         </div>
                     </div>

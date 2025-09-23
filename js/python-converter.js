@@ -210,6 +210,58 @@ def clean_srt(srt_content):
 
     return '\\n'.join(result_lines)
 
+def convert_bcc_to_srt(bcc_content):
+    """Convert Bilibili BCC format to SRT format"""
+    import json
+
+    try:
+        # Parse JSON content
+        bcc_data = json.loads(bcc_content)
+
+        # Extract subtitle entries from the 'body' field
+        subtitles = bcc_data.get('body', [])
+
+        if not subtitles:
+            raise ValueError("No subtitle data found in BCC file")
+
+        srt_lines = []
+
+        for i, subtitle in enumerate(subtitles, 1):
+            # Extract timing and content
+            start_time = subtitle.get('from', 0)
+            end_time = subtitle.get('to', 0)
+            content = subtitle.get('content', '').strip()
+
+            # Skip empty content
+            if not content:
+                continue
+
+            # Convert times to SRT format
+            start_srt = seconds_to_srt_time(start_time)
+            end_srt = seconds_to_srt_time(end_time)
+
+            # Format as SRT entry
+            srt_lines.append(f"{i}")
+            srt_lines.append(f"{start_srt} --> {end_srt}")
+            srt_lines.append(content)
+            srt_lines.append("")  # Empty line between entries
+
+        return '\\n'.join(srt_lines)
+
+    except json.JSONDecodeError as e:
+        raise ValueError(f"Invalid JSON format in BCC file: {str(e)}")
+    except Exception as e:
+        raise ValueError(f"Error processing BCC file: {str(e)}")
+
+def seconds_to_srt_time(seconds):
+    """Convert seconds (float) to SRT time format HH:MM:SS,mmm"""
+    hours = int(seconds // 3600)
+    minutes = int((seconds % 3600) // 60)
+    secs = int(seconds % 60)
+    milliseconds = int((seconds % 1) * 1000)
+
+    return f"{hours:02d}:{minutes:02d}:{secs:02d},{milliseconds:03d}"
+
 # Test function to verify Python is working
 def test_python():
     return "Python runtime loaded successfully!"
@@ -243,6 +295,9 @@ async function convertWithPython(content, converterType, options = {}) {
             break;
         case 'srt-cleaner':
             result = pyodide.runPython(`clean_srt(input_content)`);
+            break;
+        case 'bcc-to-srt':
+            result = pyodide.runPython(`convert_bcc_to_srt(input_content)`);
             break;
         default:
             throw new Error(`Unknown converter type: ${converterType}`);
