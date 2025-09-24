@@ -39,6 +39,12 @@ function openTool(toolType) {
                                class="w-full p-3 bg-fcp-dark border border-gray-600 rounded text-white placeholder-gray-400 focus:border-fcp-accent focus:outline-none">
                     </div>
                     <p class="text-sm text-gray-400">Positive values delay subtitles, negative values advance them.</p>
+                    <div class="border-t border-gray-600 pt-4">
+                        <button onclick="openAudioSync()" class="w-full bg-fcp-accent text-white py-2 px-4 rounded hover:bg-blue-600 transition-colors">
+                            Advanced Audio Sync
+                        </button>
+                        <p class="text-xs text-gray-500 mt-2 text-center">Sync subtitles with audio playback for precise timing</p>
+                    </div>
                 </div>
             `;
             additionalOptions.classList.remove('hidden');
@@ -48,11 +54,74 @@ function openTool(toolType) {
             fileTypes.textContent = 'Supported: .srt files (select multiple)';
             fileInput.accept = '.srt';
             fileInput.multiple = true;
+            additionalOptions.innerHTML = `
+                <div class="space-y-4">
+                    <div id="fileList" class="hidden">
+                        <label class="block text-sm font-medium text-gray-300 mb-2">File Order (drag to reorder)</label>
+                        <div id="fileItems" class="space-y-2"></div>
+                    </div>
+                    <div class="hidden" id="timingControls">
+                        <label class="block text-sm font-medium text-gray-300 mb-2">Gap Between Files (seconds)</label>
+                        <input type="number" id="gapBetweenFiles" step="0.1" value="1.0" min="0"
+                               class="w-full p-3 bg-fcp-dark border border-gray-600 rounded text-white placeholder-gray-400 focus:border-fcp-accent focus:outline-none">
+                        <p class="text-sm text-gray-400 mt-1">Time gap added between merged subtitle files</p>
+                    </div>
+                </div>
+            `;
+            additionalOptions.classList.remove('hidden');
             break;
         case 'srt-cleaner':
             modalTitle.textContent = 'Clean SRT File';
             fileTypes.textContent = 'Supported: .srt files';
             fileInput.accept = '.srt';
+            additionalOptions.innerHTML = `
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-3">Cleaning Options</label>
+                        <div class="grid grid-cols-1 gap-2 text-sm">
+                            <label class="flex items-center space-x-2 cursor-pointer">
+                                <input type="checkbox" id="fixNumbering" checked class="rounded bg-fcp-dark border-gray-600 text-fcp-accent focus:ring-fcp-accent">
+                                <span class="text-gray-300">Fix subtitle numbering</span>
+                            </label>
+                            <label class="flex items-center space-x-2 cursor-pointer">
+                                <input type="checkbox" id="removeEmpty" checked class="rounded bg-fcp-dark border-gray-600 text-fcp-accent focus:ring-fcp-accent">
+                                <span class="text-gray-300">Remove empty subtitles</span>
+                            </label>
+                            <label class="flex items-center space-x-2 cursor-pointer">
+                                <input type="checkbox" id="removeDuplicates" class="rounded bg-fcp-dark border-gray-600 text-fcp-accent focus:ring-fcp-accent">
+                                <span class="text-gray-300">Remove duplicate subtitles</span>
+                            </label>
+                            <label class="flex items-center space-x-2 cursor-pointer">
+                                <input type="checkbox" id="fixTiming" class="rounded bg-fcp-dark border-gray-600 text-fcp-accent focus:ring-fcp-accent">
+                                <span class="text-gray-300">Fix timing overlaps</span>
+                            </label>
+                            <label class="flex items-center space-x-2 cursor-pointer">
+                                <input type="checkbox" id="removeSoundEffects" class="rounded bg-fcp-dark border-gray-600 text-fcp-accent focus:ring-fcp-accent">
+                                <span class="text-gray-300">Remove sound effects [MUSIC], (laughing)</span>
+                            </label>
+                            <label class="flex items-center space-x-2 cursor-pointer">
+                                <input type="checkbox" id="fixCapitalization" class="rounded bg-fcp-dark border-gray-600 text-fcp-accent focus:ring-fcp-accent">
+                                <span class="text-gray-300">Fix ALL CAPS text</span>
+                            </label>
+                            <label class="flex items-center space-x-2 cursor-pointer">
+                                <input type="checkbox" id="removeSpeakers" class="rounded bg-fcp-dark border-gray-600 text-fcp-accent focus:ring-fcp-accent">
+                                <span class="text-gray-300">Remove speaker names (JOHN:, [SPEAKER]:)</span>
+                            </label>
+                            <label class="flex items-center space-x-2 cursor-pointer">
+                                <input type="checkbox" id="removeFormatting" class="rounded bg-fcp-dark border-gray-600 text-fcp-accent focus:ring-fcp-accent">
+                                <span class="text-gray-300">Remove HTML/formatting tags</span>
+                            </label>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">Minimum subtitle duration (seconds)</label>
+                        <input type="number" id="minDuration" step="0.1" value="0.5" min="0"
+                               class="w-full p-3 bg-fcp-dark border border-gray-600 rounded text-white placeholder-gray-400 focus:border-fcp-accent focus:outline-none">
+                        <p class="text-xs text-gray-400 mt-1">Remove subtitles shorter than this duration</p>
+                    </div>
+                </div>
+            `;
+            additionalOptions.classList.remove('hidden');
             break;
         case 'bcc-to-srt':
             modalTitle.textContent = 'Convert BCC to SRT';
@@ -172,7 +241,89 @@ function handleFileUpload(files) {
             <p class="text-green-400 mb-2">${files.length} files ready</p>
             <p class="text-sm text-gray-500">Click Process to merge</p>
         `;
+
+        // Show file list and timing controls for SRT merger
+        if (currentTool === 'srt-merger') {
+            showFileList(files);
+        }
     }
+}
+
+function showFileList(files) {
+    const fileList = document.getElementById('fileList');
+    const fileItems = document.getElementById('fileItems');
+    const timingControls = document.getElementById('timingControls');
+
+    fileItems.innerHTML = '';
+
+    Array.from(files).forEach((file, index) => {
+        const fileItem = document.createElement('div');
+        fileItem.className = 'bg-fcp-dark p-3 rounded border border-gray-600 cursor-move flex items-center justify-between';
+        fileItem.draggable = true;
+        fileItem.dataset.index = index;
+
+        fileItem.innerHTML = `
+            <div class="flex items-center space-x-3">
+                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16"></path>
+                </svg>
+                <span class="text-white">${index + 1}. ${file.name}</span>
+            </div>
+            <div class="text-sm text-gray-400">
+                ${(file.size / 1024).toFixed(1)} KB
+            </div>
+        `;
+
+        // Drag and drop handlers
+        fileItem.addEventListener('dragstart', (e) => {
+            e.dataTransfer.setData('text/plain', index);
+            fileItem.classList.add('opacity-50');
+        });
+
+        fileItem.addEventListener('dragend', () => {
+            fileItem.classList.remove('opacity-50');
+        });
+
+        fileItem.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            fileItem.classList.add('border-fcp-accent');
+        });
+
+        fileItem.addEventListener('dragleave', () => {
+            fileItem.classList.remove('border-fcp-accent');
+        });
+
+        fileItem.addEventListener('drop', (e) => {
+            e.preventDefault();
+            fileItem.classList.remove('border-fcp-accent');
+
+            const draggedIndex = parseInt(e.dataTransfer.getData('text/plain'));
+            const targetIndex = parseInt(fileItem.dataset.index);
+
+            if (draggedIndex !== targetIndex) {
+                reorderFiles(draggedIndex, targetIndex);
+            }
+        });
+
+        fileItems.appendChild(fileItem);
+    });
+
+    fileList.classList.remove('hidden');
+    timingControls.classList.remove('hidden');
+}
+
+function reorderFiles(fromIndex, toIndex) {
+    const filesArray = Array.from(uploadedFile);
+    const [movedFile] = filesArray.splice(fromIndex, 1);
+    filesArray.splice(toIndex, 0, movedFile);
+
+    // Update uploadedFile with new order
+    const dt = new DataTransfer();
+    filesArray.forEach(file => dt.items.add(file));
+    uploadedFile = dt.files;
+
+    // Refresh the file list display
+    showFileList(uploadedFile);
 }
 
 function processFile() {
@@ -421,10 +572,124 @@ async function processSrtTimeShift(file, offset) {
     reader.readAsText(file);
 }
 
-function processSrtMerger(files) {
-    // Placeholder for SRT merger
-    alert(`SRT merger for ${files.length} files coming soon!`);
-    closeModal();
+async function processSrtMerger(files) {
+    try {
+        const gapBetweenFiles = parseFloat(document.getElementById('gapBetweenFiles').value) || 1.0;
+
+        const allSubtitles = [];
+        let currentTimeOffset = 0;
+
+        // Process each file in order
+        for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+            const content = await readFileContent(file);
+            const subtitles = parseSrtContent(content);
+
+            // Find the maximum end time of current file
+            let maxEndTime = 0;
+
+            subtitles.forEach((subtitle, index) => {
+                // Adjust timing with current offset
+                const adjustedStartTime = subtitle.startTime + currentTimeOffset;
+                const adjustedEndTime = subtitle.endTime + currentTimeOffset;
+
+                allSubtitles.push({
+                    startTime: adjustedStartTime,
+                    endTime: adjustedEndTime,
+                    text: subtitle.text,
+                    originalFile: file.name
+                });
+
+                maxEndTime = Math.max(maxEndTime, adjustedEndTime);
+            });
+
+            // Update offset for next file (max end time + gap)
+            currentTimeOffset = maxEndTime + gapBetweenFiles;
+        }
+
+        // Generate merged SRT content
+        let mergedSrtContent = '';
+        allSubtitles.forEach((subtitle, index) => {
+            mergedSrtContent += `${index + 1}\n`;
+            mergedSrtContent += `${formatSrtTimeFromSeconds(subtitle.startTime)} --> ${formatSrtTimeFromSeconds(subtitle.endTime)}\n`;
+            mergedSrtContent += `${subtitle.text}\n\n`;
+        });
+
+        // Download merged file
+        const mergedFileName = `merged_${files.length}_subtitles.srt`;
+        downloadFile(mergedSrtContent, mergedFileName, 'text/plain');
+        closeModal();
+
+    } catch (error) {
+        console.error('Merge error:', error);
+        alert('Error merging files: ' + error.message);
+        document.getElementById('processBtn').textContent = 'Process';
+        document.getElementById('processBtn').disabled = false;
+    }
+}
+
+function readFileContent(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => resolve(e.target.result);
+        reader.onerror = (e) => reject(new Error('Failed to read file'));
+        reader.readAsText(file);
+    });
+}
+
+function parseSrtContent(content) {
+    const lines = content.trim().split(/\r?\n/);
+    const subtitles = [];
+    let currentSubtitle = null;
+
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i].trim();
+
+        if (/^\d+$/.test(line)) {
+            // Subtitle number
+            if (currentSubtitle) {
+                subtitles.push(currentSubtitle);
+            }
+            currentSubtitle = { text: [] };
+        } else if (line.includes('-->')) {
+            // Timing line
+            const [startStr, endStr] = line.split('-->').map(s => s.trim());
+            currentSubtitle.startTime = parseSrtTimeToSeconds(startStr);
+            currentSubtitle.endTime = parseSrtTimeToSeconds(endStr);
+        } else if (line && currentSubtitle) {
+            // Text line
+            currentSubtitle.text.push(line);
+        }
+    }
+
+    if (currentSubtitle) {
+        subtitles.push(currentSubtitle);
+    }
+
+    // Join text lines
+    subtitles.forEach(sub => {
+        sub.text = sub.text.join('\n');
+    });
+
+    return subtitles;
+}
+
+function parseSrtTimeToSeconds(timeStr) {
+    const [time, ms] = timeStr.split(',');
+    const [hours, minutes, seconds] = time.split(':').map(Number);
+    return hours * 3600 + minutes * 60 + seconds + (parseInt(ms) / 1000);
+}
+
+function formatSrtTimeFromSeconds(totalSeconds) {
+    // Round to avoid floating-point precision issues
+    const roundedSeconds = Math.round(totalSeconds * 1000) / 1000;
+
+    const hours = Math.floor(roundedSeconds / 3600);
+    const minutes = Math.floor((roundedSeconds % 3600) / 60);
+    const seconds = Math.floor(roundedSeconds % 60);
+    const milliseconds = Math.round((roundedSeconds % 1) * 1000);
+
+    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')},${milliseconds.toString().padStart(3, '0')}`;
 }
 
 async function processSrtCleaner(file) {
@@ -432,17 +697,161 @@ async function processSrtCleaner(file) {
     reader.onload = async function(e) {
         try {
             const content = e.target.result;
-            const srtContent = await convertWithPython(content, 'srt-cleaner');
-            downloadFile(srtContent, file.name.replace(/\.[^/.]+$/, "_cleaned.srt"), 'text/plain');
+
+            // Get cleaning options
+            const options = {
+                fixNumbering: document.getElementById('fixNumbering')?.checked || false,
+                removeDuplicates: document.getElementById('removeDuplicates')?.checked || false,
+                removeEmpty: document.getElementById('removeEmpty')?.checked || false,
+                fixTiming: document.getElementById('fixTiming')?.checked || false,
+                removeSoundEffects: document.getElementById('removeSoundEffects')?.checked || false,
+                fixCapitalization: document.getElementById('fixCapitalization')?.checked || false,
+                removeSpeakers: document.getElementById('removeSpeakers')?.checked || false,
+                removeFormatting: document.getElementById('removeFormatting')?.checked || false,
+                minDuration: parseFloat(document.getElementById('minDuration')?.value || '0.5')
+            };
+
+            const cleanedContent = cleanSrtFile(content, options);
+            downloadFile(cleanedContent, file.name.replace(/\.[^/.]+$/, "_cleaned.srt"), 'text/plain');
             closeModal();
         } catch (error) {
-            console.error('Conversion error:', error);
-            alert('Error processing file: ' + error.message);
+            console.error('Cleaning error:', error);
+            alert('Error cleaning file: ' + error.message);
             document.getElementById('processBtn').textContent = 'Process';
             document.getElementById('processBtn').disabled = false;
         }
     };
     reader.readAsText(file);
+}
+
+function cleanSrtFile(content, options) {
+    // Parse SRT content similar to your Python script
+    const lines = content.split(/\r?\n/).map(line => line.trim()).filter(line => line);
+    const blocks = [];
+    let i = 0;
+
+    // Extract subtitle blocks (similar to your Python logic)
+    while (i < lines.length) {
+        if (/^\d+$/.test(lines[i])) {  // Skip existing number
+            i++;
+        }
+        if (i < lines.length && lines[i].includes('-->')) {
+            const timestamp = lines[i];
+            i++;
+            const textLines = [];
+            while (i < lines.length && !/^\d+$/.test(lines[i]) && !lines[i].includes('-->')) {
+                textLines.push(lines[i]);
+                i++;
+            }
+            if (textLines.length > 0) {
+                blocks.push({ timestamp, textLines });
+            }
+        } else {
+            i++;
+        }
+    }
+
+    // Clean each block
+    let cleanedBlocks = blocks.map(block => {
+        let { timestamp, textLines } = block;
+        let text = textLines.join('\n');
+
+        // Parse timing
+        const [startTime, endTime] = timestamp.split('-->').map(t => t.trim());
+        const startSeconds = parseSrtTimeToSeconds(startTime);
+        const endSeconds = parseSrtTimeToSeconds(endTime);
+        const duration = endSeconds - startSeconds;
+
+        // Apply cleaning options
+        if (options.removeEmpty && (!text || text.trim() === '')) {
+            return null;
+        }
+
+        if (options.minDuration && duration < options.minDuration) {
+            return null;
+        }
+
+        if (options.removeSoundEffects) {
+            // Remove sound effects in brackets and parentheses
+            text = text.replace(/\[.*?\]/g, '');
+            text = text.replace(/\(.*?\)/g, '');
+        }
+
+        if (options.removeSpeakers) {
+            // Remove speaker names like "JOHN:", "[SPEAKER 1]:", etc.
+            text = text.replace(/^[A-Z\s]+:\s*/gm, '');
+            text = text.replace(/^\[.*?\]:\s*/gm, '');
+        }
+
+        if (options.removeFormatting) {
+            // Remove HTML-like tags
+            text = text.replace(/<[^>]*>/g, '');
+            text = text.replace(/&[a-zA-Z0-9#]+;/g, ' '); // HTML entities
+        }
+
+        if (options.fixCapitalization) {
+            // Fix ALL CAPS text (but preserve intentional caps like acronyms)
+            text = text.replace(/\b[A-Z]{4,}\b/g, match => {
+                // Don't change if it's likely an acronym (short words)
+                if (match.length <= 4) return match;
+                return match.charAt(0) + match.slice(1).toLowerCase();
+            });
+        }
+
+        // Clean up whitespace
+        text = text.replace(/\s+/g, ' ').trim();
+
+        if (!text) return null;
+
+        return {
+            startTime: startSeconds,
+            endTime: endSeconds,
+            timestamp,
+            text
+        };
+    }).filter(block => block !== null);
+
+    // Remove duplicates if requested
+    if (options.removeDuplicates) {
+        const seen = new Set();
+        cleanedBlocks = cleanedBlocks.filter(block => {
+            const key = block.text.toLowerCase().trim();
+            if (seen.has(key)) {
+                return false;
+            }
+            seen.add(key);
+            return true;
+        });
+    }
+
+    // Fix timing overlaps if requested
+    if (options.fixTiming) {
+        for (let i = 0; i < cleanedBlocks.length - 1; i++) {
+            const current = cleanedBlocks[i];
+            const next = cleanedBlocks[i + 1];
+
+            if (current.endTime > next.startTime) {
+                // Adjust current block to end 100ms before next starts
+                const newEndTime = Math.max(current.startTime + 0.5, next.startTime - 0.1);
+                current.endTime = newEndTime;
+                current.timestamp = `${formatSrtTimeFromSeconds(current.startTime)} --> ${formatSrtTimeFromSeconds(current.endTime)}`;
+            }
+        }
+    }
+
+    // Generate cleaned SRT content
+    let result = '';
+    cleanedBlocks.forEach((block, index) => {
+        if (options.fixNumbering) {
+            result += `${index + 1}\n`;
+        } else {
+            result += `${index + 1}\n`;  // Always fix numbering for consistency
+        }
+        result += `${block.timestamp}\n`;
+        result += `${block.text}\n\n`;
+    });
+
+    return result;
 }
 
 async function processBccToSrt(file) {
@@ -461,6 +870,30 @@ async function processBccToSrt(file) {
         }
     };
     reader.readAsText(file);
+}
+
+function openAudioSync() {
+    // Store the uploaded SRT file for the audio sync page
+    if (uploadedFile && uploadedFile[0]) {
+        localStorage.setItem('srtSyncFile', JSON.stringify({
+            name: uploadedFile[0].name,
+            content: null // Will be loaded on the sync page
+        }));
+
+        // Store file content
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const fileData = {
+                name: uploadedFile[0].name,
+                content: e.target.result
+            };
+            localStorage.setItem('srtSyncFile', JSON.stringify(fileData));
+            window.open('srt-sync.html', '_blank');
+        };
+        reader.readAsText(uploadedFile[0]);
+    } else {
+        window.open('srt-sync.html', '_blank');
+    }
 }
 
 function downloadFile(content, filename, mimeType) {

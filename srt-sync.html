@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SRT Audio Sync - EditKit</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+        .bg-fcp-dark { background-color: #1C1C1E; }
+        .bg-fcp-gray { background-color: #2C2C2E; }
+        .text-fcp-accent { color: #0A84FF; }
+        .bg-fcp-accent { background-color: #0A84FF; }
+        .border-fcp-border { border-color: #38383A; }
+        .text-fcp-text-secondary { color: #8E8E93; }
+
+        .audio-timeline {
+            background: linear-gradient(to right, #0A84FF 0%, #0A84FF var(--progress, 0%), #38383A var(--progress, 0%), #38383A 100%);
+            height: 6px;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+
+        .subtitle-block {
+            position: absolute;
+            background: rgba(10, 132, 255, 0.3);
+            border: 1px solid #0A84FF;
+            border-radius: 2px;
+            height: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .subtitle-block:hover {
+            background: rgba(10, 132, 255, 0.5);
+        }
+
+        .subtitle-preview {
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            border-radius: 8px;
+            padding: 12px 20px;
+            font-size: 18px;
+            font-weight: 500;
+            text-align: center;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+    </style>
+</head>
+<body class="bg-fcp-dark text-white min-h-screen flex flex-col">
+    <!-- Header -->
+    <header class="bg-fcp-gray border-b border-fcp-border">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <a href="subtitles.html" class="text-fcp-accent hover:text-blue-300 transition-colors">
+                        ← Back to Subtitle Tools
+                    </a>
+                    <h1 class="text-2xl font-bold">
+                        <span class="text-white">SRT Audio</span>
+                        <span class="text-fcp-accent">Sync</span>
+                    </h1>
+                </div>
+                <button id="downloadBtn" class="bg-fcp-accent text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                    Download Synced SRT
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- File Upload Section -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <!-- SRT Upload -->
+            <div class="bg-fcp-gray p-6 rounded-lg border border-fcp-border">
+                <h3 class="text-lg font-semibold mb-4">SRT Subtitle File</h3>
+                <div id="srtUpload" class="border-2 border-dashed border-fcp-border rounded-lg p-6 text-center cursor-pointer hover:border-fcp-accent transition-colors">
+                    <svg class="w-12 h-12 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                    </svg>
+                    <p class="text-gray-400">Drop SRT file here or click to browse</p>
+                    <input type="file" id="srtInput" class="hidden" accept=".srt">
+                </div>
+                <div id="srtInfo" class="mt-4 text-sm text-gray-400 hidden"></div>
+            </div>
+
+            <!-- Audio Upload -->
+            <div class="bg-fcp-gray p-6 rounded-lg border border-fcp-border">
+                <h3 class="text-lg font-semibold mb-4">Audio File</h3>
+                <div id="audioUpload" class="border-2 border-dashed border-fcp-border rounded-lg p-6 text-center cursor-pointer hover:border-fcp-accent transition-colors">
+                    <svg class="w-12 h-12 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path>
+                    </svg>
+                    <p class="text-gray-400">Drop audio file here or click to browse</p>
+                    <p class="text-xs text-gray-500 mt-2">Supports MP3, WAV, M4A, AAC</p>
+                    <input type="file" id="audioInput" class="hidden" accept=".mp3,.wav,.m4a,.aac,.ogg">
+                </div>
+                <div id="audioInfo" class="mt-4 text-sm text-gray-400 hidden"></div>
+            </div>
+        </div>
+
+        <!-- Audio Player & Timeline -->
+        <div id="playerSection" class="bg-fcp-gray p-6 rounded-lg border border-fcp-border mb-8 hidden">
+            <h3 class="text-lg font-semibold mb-4">Audio Player & Timeline</h3>
+
+            <!-- Audio Element -->
+            <audio id="audioPlayer" class="hidden"></audio>
+
+            <!-- Timeline Container -->
+            <div class="mb-6">
+                <div class="flex justify-between text-sm text-gray-400 mb-2">
+                    <span id="currentTime">00:00</span>
+                    <span id="totalTime">00:00</span>
+                </div>
+                <div class="relative">
+                    <div id="timeline" class="audio-timeline relative"></div>
+                    <div id="subtitleBlocks" class="relative mt-2 h-6"></div>
+                </div>
+            </div>
+
+            <!-- Controls -->
+            <div class="flex items-center justify-center space-x-4">
+                <button id="playBtn" class="bg-fcp-accent text-white px-6 py-2 rounded hover:bg-blue-600 transition-colors">
+                    Play
+                </button>
+                <button id="pauseBtn" class="bg-gray-600 text-white px-6 py-2 rounded hover:bg-gray-500 transition-colors">
+                    Pause
+                </button>
+                <div class="flex items-center space-x-2">
+                    <label class="text-sm text-gray-400">Speed:</label>
+                    <select id="playbackSpeed" class="bg-fcp-dark border border-gray-600 rounded px-2 py-1 text-white">
+                        <option value="0.5">0.5x</option>
+                        <option value="0.75">0.75x</option>
+                        <option value="1" selected>1x</option>
+                        <option value="1.25">1.25x</option>
+                        <option value="1.5">1.5x</option>
+                        <option value="2">2x</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Subtitle Preview -->
+        <div id="subtitleSection" class="bg-fcp-gray p-6 rounded-lg border border-fcp-border mb-8 hidden">
+            <h3 class="text-lg font-semibold mb-4">Subtitle Preview</h3>
+            <div id="subtitlePreview" class="subtitle-preview">
+                No subtitle active
+            </div>
+        </div>
+
+        <!-- Timing Controls -->
+        <div id="controlsSection" class="bg-fcp-gray p-6 rounded-lg border border-fcp-border hidden">
+            <h3 class="text-lg font-semibold mb-4">Timing Adjustment</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Time Offset (seconds)</label>
+                    <div class="flex items-center space-x-2">
+                        <input type="range" id="offsetSlider" min="-10" max="10" step="0.1" value="0"
+                               class="flex-1 h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer">
+                        <input type="number" id="offsetInput" step="0.1" value="0"
+                               class="w-20 p-2 bg-fcp-dark border border-gray-600 rounded text-white text-center">
+                    </div>
+                    <p class="text-xs text-gray-400 mt-1">Adjust subtitle timing relative to audio</p>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Quick Actions</label>
+                    <div class="flex space-x-2">
+                        <button onclick="adjustOffset(-1)" class="bg-gray-600 text-white px-3 py-2 rounded hover:bg-gray-500 transition-colors text-sm">
+                            -1s
+                        </button>
+                        <button onclick="adjustOffset(-0.1)" class="bg-gray-600 text-white px-3 py-2 rounded hover:bg-gray-500 transition-colors text-sm">
+                            -0.1s
+                        </button>
+                        <button onclick="adjustOffset(0.1)" class="bg-gray-600 text-white px-3 py-2 rounded hover:bg-gray-500 transition-colors text-sm">
+                            +0.1s
+                        </button>
+                        <button onclick="adjustOffset(1)" class="bg-gray-600 text-white px-3 py-2 rounded hover:bg-gray-500 transition-colors text-sm">
+                            +1s
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Universal Footer -->
+    <footer class="bg-fcp-gray border-t border-fcp-border mt-auto">
+        <div class="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+            <div class="text-center">
+                <p class="text-fcp-text-secondary text-sm">
+                    © 2025 EditKit. Professional video editing tools for Final Cut Pro workflows.
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/srt-sync.js"></script>
+</body>
+</html>
