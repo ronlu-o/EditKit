@@ -20,12 +20,12 @@ function openTool(toolType) {
         case 'lrcx-to-srt':
             modalTitle.textContent = 'Convert LRCX to SRT';
             fileTypes.textContent = 'Supported: .lrcx files';
-            fileInput.accept = '';
+            fileInput.accept = '.lrcx';
             break;
         case 'vtt-to-srt':
-            modalTitle.textContent = 'Convert VTT to SRT';
-            fileTypes.textContent = 'Supported: .vtt files';
-            fileInput.accept = '.vtt';
+            modalTitle.textContent = 'Convert LRC/VTT to SRT';
+            fileTypes.textContent = 'Supported: .lrc, .vtt files';
+            fileInput.accept = '.lrc,.vtt';
             break;
         case 'srt-time-shift':
             modalTitle.textContent = 'Shift SRT Timing';
@@ -192,7 +192,12 @@ function processFile() {
             processLrcxToSrt(uploadedFile[0]);
             break;
         case 'vtt-to-srt':
-            processVttToSrt(uploadedFile[0]);
+            const file = uploadedFile[0];
+            if (file.name.toLowerCase().endsWith('.lrc')) {
+                processLrcToSrt(file);
+            } else {
+                processVttToSrt(file);
+            }
             break;
         case 'srt-time-shift':
             const offset = parseFloat(document.getElementById('timeOffset').value);
@@ -214,6 +219,65 @@ function processFile() {
             processBccToSrt(uploadedFile[0]);
             break;
     }
+}
+
+async function processLrcToSrt(file) {
+    const reader = new FileReader();
+    reader.onload = async function(e) {
+        try {
+            const content = e.target.result;
+            const srtContent = convertLrcToSrt(content);
+            downloadFile(srtContent, file.name.replace(/\.[^/.]+$/, ".srt"), 'text/plain');
+            closeModal();
+        } catch (error) {
+            console.error('Conversion error:', error);
+            alert('Error converting file: ' + error.message);
+            document.getElementById('processBtn').textContent = 'Process';
+            document.getElementById('processBtn').disabled = false;
+        }
+    };
+    reader.readAsText(file);
+}
+
+function convertLrcToSrt(lrcContent) {
+    const lines = lrcContent.split(/\r?\n/);
+    let srtContent = '';
+    const subtitles = [];
+
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i].trim();
+        // Fixed regex: removed escape backslashes for square brackets
+        const match = line.match(/^\[(\d{1,2}):(\d{2})\.(\d{2,3})\](.*)$/);
+
+        if (match) {
+            const minutes = parseInt(match[1]);
+            const seconds = parseInt(match[2]);
+            let milliseconds = parseInt(match[3]);
+            const text = match[4].trim();
+
+            // Handle 2-digit centiseconds vs 3-digit milliseconds
+            if (match[3].length === 2) {
+                milliseconds = milliseconds * 10; // Convert centiseconds to milliseconds
+            }
+
+            if (text) {
+                const startTime = (minutes * 60 + seconds) * 1000 + milliseconds;
+                subtitles.push({ startTime, text });
+            }
+        }
+    }
+
+    for (let i = 0; i < subtitles.length; i++) {
+        const subtitle = subtitles[i];
+        const nextSubtitle = subtitles[i + 1];
+        const endTime = nextSubtitle ? nextSubtitle.startTime : subtitle.startTime + 2000; // 2 seconds duration for last subtitle
+
+        srtContent += `${i + 1}\n`;
+        srtContent += `${formatSrtTime(subtitle.startTime)} --> ${formatSrtTime(endTime)}\n`;
+        srtContent += `${subtitle.text}\n\n`;
+    }
+
+    return srtContent;
 }
 
 async function processLrcxToSrt(file) {
@@ -246,23 +310,23 @@ function convertLrcxToSrt(lrcxContent) {
 
         // Try multiple LRCX timestamp formats
         // Format 1: [mm:ss.xx] (original)
-        let match = line.match(/^\[(\d{2}):(\d{2})\.(\d{2})\](.*)$/);
+        let match = line.match(/^\\[(\d{2}):(\d{2})\.(\d{2})\\](.*)$/);
 
         // Format 2: [mm:ss.xxx] (3-digit centiseconds)
         if (!match) {
-            match = line.match(/^\[(\d{2}):(\d{2})\.(\d{3})\](.*)$/);
+            match = line.match(/^\\[(\d{2}):(\d{2})\.(\d{3})\\](.*)$/);
         }
 
         // Format 3: [m:ss.xx] (single digit minutes)
         if (!match) {
-            match = line.match(/^\[(\d{1}):(\d{2})\.(\d{2})\](.*)$/);
+            match = line.match(/^\\[(\d{1}):(\d{2})\.(\d{2})\\](.*)$/);
         }
 
         if (match) {
             console.log('Found match:', line);
             const minutes = parseInt(match[1]);
             const seconds = parseInt(match[2]);
-            let centiseconds = parseInt(match[3]);
+let centiseconds = parseInt(match[3]);
             const text = match[4].trim();
 
             // Handle 3-digit milliseconds vs 2-digit centiseconds
@@ -279,7 +343,7 @@ function convertLrcxToSrt(lrcxContent) {
 
                 // Check if there's a next subtitle
                 for (let j = i + 1; j < lines.length; j++) {
-                    const nextMatch = lines[j].match(/^\[(\d{2}):(\d{2})\.(\d{2})\]/);
+                    const nextMatch = lines[j].match(/^\\[(\d{2}):(\d{2})\.(\d{2})\\]/);
                     if (nextMatch) {
                         const nextMinutes = parseInt(nextMatch[1]);
                         const nextSeconds = parseInt(nextMatch[2]);
