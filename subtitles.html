@@ -82,7 +82,7 @@
         <!-- Header -->
         <div class="text-center py-12">
             <h1 class="text-4xl font-bold text-white mb-4">Subtitle Tools</h1>
-            <p class="text-xl text-gray-400 max-w-3xl mx-auto">Professional subtitle conversion and editing tools for Final Cut Pro workflows</p>
+            <p class="text-xl text-gray-400 max-w-3xl mx-auto">Professional subtitle conversion and editing tools for video editing workflows</p>
         </div>
 
         <!-- Tool Grid -->
@@ -112,7 +112,7 @@
                     </svg>
                 </div>
                 <h3 class="text-xl font-semibold text-fcp-text mb-2">LRC/VTT to SRT</h3>
-                <p class="text-fcp-text-secondary text-sm mb-4">Convert WebVTT and LRC subtitle files to SRT format for Final Cut Pro compatibility.</p>
+                <p class="text-fcp-text-secondary text-sm mb-4">Convert WebVTT and LRC subtitle files to SRT format for editing or web compatibility.</p>
                 <div class="flex items-center text-fcp-accent text-sm">
                     <span>Click to upload VTT or LRC file</span>
                     <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -234,8 +234,11 @@
         </div>
     </footer>
 
-    <script src="js/main.js"></script>
+    <!-- Modular JavaScript Files - Order matters! -->
     <script src="js/python-converter.js"></script>
+    <script src="js/srt-utils.js"></script>
+    <script src="js/file-handlers.js"></script>
+    <script src="js/subtitle-processors.js"></script>
     <script src="js/subtitles.js"></script>
 </body>
 </html>
