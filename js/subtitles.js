@@ -2,6 +2,9 @@
 
 let currentTool = '';
 let uploadedFile = null;
+let manualInputMode = false;
+let manualInputContent = '';
+let lrcxConversionMode = 'intelligent';
 
 // Open tool modal with specific configuration
 function openTool(toolType) {
@@ -17,6 +20,10 @@ function openTool(toolType) {
     document.getElementById('processBtn').disabled = true;
     additionalOptions.classList.add('hidden');
     additionalOptions.innerHTML = '';
+    manualInputMode = false;
+    manualInputContent = '';
+    lrcxConversionMode = 'intelligent';
+    toggleUploadAreaAccessibility(false);
 
     // Configure modal based on tool type
     switch(toolType) {
@@ -24,6 +31,34 @@ function openTool(toolType) {
             modalTitle.textContent = 'Convert LRCX to SRT';
             fileTypes.textContent = 'Supported: .lrcx files';
             fileInput.accept = '.lrcx';
+            additionalOptions.innerHTML = `
+                <div id="lrcxOptions" class="space-y-6">
+                    <div>
+                        <p class="text-sm font-medium text-gray-300 mb-2">Output mode</p>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                            <button data-lrcx-mode="original" type="button" class="lrcx-mode-btn px-3 py-2 border border-gray-600 rounded text-sm text-gray-300 hover:border-fcp-accent transition-colors">Original</button>
+                            <button data-lrcx-mode="intelligent" type="button" class="lrcx-mode-btn px-3 py-2 border border-gray-600 rounded text-sm text-gray-300 hover:border-fcp-accent transition-colors">Intelligent</button>
+                            <button data-lrcx-mode="translation-only" type="button" class="lrcx-mode-btn px-3 py-2 border border-gray-600 rounded text-sm text-gray-300 hover:border-fcp-accent transition-colors">Translations</button>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-2">Choose which lines to keep when generating the SRT.</p>
+                    </div>
+                    <div id="manualInputSection" class="space-y-4">
+                        <button id="toggleManualInput" type="button" class="w-full bg-fcp-accent text-white py-2 px-4 rounded hover:bg-blue-600 transition-colors">
+                            Paste LRCX manually
+                        </button>
+                        <div id="manualInputContainer" class="hidden space-y-3 border border-gray-600 rounded-lg p-4 bg-fcp-dark">
+                            <div class="flex items-center justify-between">
+                                <label for="manualInputTextarea" class="text-sm font-medium text-gray-300">Manual LRCX content</label>
+                                <button id="exitManualInput" type="button" class="text-sm text-gray-400 hover:text-white">Back to file upload</button>
+                            </div>
+                            <textarea id="manualInputTextarea" rows="10" placeholder="Paste your .lrcx file contents here" class="w-full p-3 bg-black border border-gray-700 rounded text-white placeholder-gray-500 focus:border-fcp-accent focus:outline-none"></textarea>
+                            <p class="text-xs text-gray-500">Your pasted text stays in this browser tab only.</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+            additionalOptions.classList.remove('hidden');
+            initializeLrcxControls();
             break;
         case 'vtt-to-srt':
             modalTitle.textContent = 'Convert LRC/VTT to SRT';
@@ -172,6 +207,8 @@ function closeModal() {
     modal.classList.add('hidden');
     currentTool = '';
     uploadedFile = null;
+    manualInputMode = false;
+    manualInputContent = '';
 
     // Reset file input safely
     const fileInput = document.getElementById('fileInput');
@@ -191,6 +228,9 @@ function closeModal() {
             <p id="fileTypes" class="text-sm text-gray-500">Supported: .lrcx files</p>
             <input type="file" id="fileInput" class="hidden" accept="">
         `;
+        uploadArea.classList.remove('opacity-50');
+        uploadArea.classList.remove('pointer-events-none');
+        uploadArea.removeAttribute('aria-disabled');
     }
 
     // Reset process button
@@ -201,9 +241,140 @@ function closeModal() {
     }
 }
 
+function initializeLrcxControls() {
+    const toggleButton = document.getElementById('toggleManualInput');
+    const exitButton = document.getElementById('exitManualInput');
+    const textarea = document.getElementById('manualInputTextarea');
+    const modeButtons = document.querySelectorAll('.lrcx-mode-btn');
+
+    if (toggleButton) {
+        toggleButton.addEventListener('click', (event) => {
+            event.preventDefault();
+            activateManualInput();
+        });
+    }
+
+    if (exitButton) {
+        exitButton.addEventListener('click', (event) => {
+            event.preventDefault();
+            deactivateManualInput();
+        });
+    }
+
+    if (textarea) {
+        textarea.addEventListener('input', (event) => {
+            manualInputContent = event.target.value;
+            updateProcessButtonState();
+        });
+    }
+
+    modeButtons.forEach((button) => {
+        button.addEventListener('click', (event) => {
+            event.preventDefault();
+            const { lrcxMode } = event.currentTarget.dataset;
+            if (lrcxMode) {
+                setLrcxConversionMode(lrcxMode);
+            }
+        });
+    });
+
+    updateLrcxModeButtons();
+}
+
+function activateManualInput() {
+    manualInputMode = true;
+    const container = document.getElementById('manualInputContainer');
+    const textarea = document.getElementById('manualInputTextarea');
+    const fileInput = document.getElementById('fileInput');
+
+    if (container) {
+        container.classList.remove('hidden');
+    }
+
+    toggleUploadAreaAccessibility(true);
+
+    if (textarea) {
+        textarea.focus();
+        manualInputContent = textarea.value;
+    }
+
+    if (fileInput) {
+        fileInput.value = '';
+    }
+
+    uploadedFile = null;
+    updateProcessButtonState();
+}
+
+function deactivateManualInput() {
+    manualInputMode = false;
+    manualInputContent = '';
+
+    const container = document.getElementById('manualInputContainer');
+    const textarea = document.getElementById('manualInputTextarea');
+
+    if (textarea) {
+        textarea.value = '';
+    }
+
+    if (container) {
+        container.classList.add('hidden');
+    }
+
+    toggleUploadAreaAccessibility(false);
+    updateProcessButtonState();
+}
+
+function toggleUploadAreaAccessibility(disable) {
+    const uploadArea = document.getElementById('uploadArea');
+    if (!uploadArea) return;
+
+    if (disable) {
+        uploadArea.classList.add('opacity-50');
+        uploadArea.classList.add('pointer-events-none');
+        uploadArea.setAttribute('aria-disabled', 'true');
+    } else {
+        uploadArea.classList.remove('opacity-50');
+        uploadArea.classList.remove('pointer-events-none');
+        uploadArea.removeAttribute('aria-disabled');
+    }
+}
+
+function setLrcxConversionMode(mode) {
+    const normalizedMode = typeof mode === 'string' ? mode.toLowerCase() : 'intelligent';
+    const allowedModes = new Set(['original', 'intelligent', 'translation-only']);
+    lrcxConversionMode = allowedModes.has(normalizedMode) ? normalizedMode : 'intelligent';
+    updateLrcxModeButtons();
+}
+
+function updateLrcxModeButtons() {
+    const modeButtons = document.querySelectorAll('.lrcx-mode-btn');
+    modeButtons.forEach((button) => {
+        const buttonMode = button.dataset.lrcxMode;
+        if (buttonMode === lrcxConversionMode) {
+            button.classList.add('bg-fcp-accent', 'text-white', 'border-transparent');
+            button.classList.remove('text-gray-300', 'border-gray-600');
+        } else {
+            button.classList.remove('bg-fcp-accent', 'text-white', 'border-transparent');
+            button.classList.add('text-gray-300', 'border-gray-600');
+        }
+    });
+}
+
+function updateProcessButtonState() {
+    const processBtn = document.getElementById('processBtn');
+    if (!processBtn || currentTool !== 'lrcx-to-srt') return;
+
+    if (manualInputMode) {
+        processBtn.disabled = manualInputContent.trim().length === 0;
+    } else {
+        processBtn.disabled = !uploadedFile || uploadedFile.length === 0;
+    }
+}
+
 // Process file based on current tool
 function processFile() {
-    if (!uploadedFile && currentTool !== 'srt-creator') {
+    if (!uploadedFile && currentTool !== 'srt-creator' && !(currentTool === 'lrcx-to-srt' && manualInputMode)) {
         alert('Please upload a file first');
         return;
     }
@@ -216,7 +387,11 @@ function processFile() {
     // Route to appropriate processor
     switch(currentTool) {
         case 'lrcx-to-srt':
-            processLrcxToSrt(uploadedFile[0]);
+            if (manualInputMode) {
+                processLrcxTextToSrt(manualInputContent);
+            } else {
+                processLrcxToSrt(uploadedFile[0]);
+            }
             break;
         case 'vtt-to-srt':
             const file = uploadedFile[0];

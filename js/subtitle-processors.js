@@ -25,7 +25,7 @@ async function processLrcxToSrt(file) {
     reader.onload = async function(e) {
         try {
             const content = e.target.result;
-            const srtContent = await convertWithPython(content, 'lrcx-to-srt');
+            const srtContent = await convertWithPython(content, 'lrcx-to-srt', { mode: lrcxConversionMode });
             downloadFile(srtContent, file.name.replace(/\.[^/.]+$/, ".srt"), 'text/plain');
             closeModal();
         } catch (error) {
@@ -36,6 +36,22 @@ async function processLrcxToSrt(file) {
         }
     };
     reader.readAsText(file);
+}
+
+async function processLrcxTextToSrt(content) {
+    try {
+        const srtContent = await convertWithPython(content, 'lrcx-to-srt', { mode: lrcxConversionMode });
+        downloadFile(srtContent, 'manual_input.srt', 'text/plain');
+        closeModal();
+    } catch (error) {
+        console.error('Conversion error:', error);
+        alert('Error converting text: ' + error.message);
+        const processBtn = document.getElementById('processBtn');
+        if (processBtn) {
+            processBtn.textContent = 'Process';
+            processBtn.disabled = false;
+        }
+    }
 }
 
 // Process VTT to SRT conversion

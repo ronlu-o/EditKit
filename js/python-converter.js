@@ -14,45 +14,67 @@ async function initializePython() {
 import re
 from io import StringIO
 
-def convert_lrcx_to_srt(lrcx_content):
-    """Convert LRCX content to SRT format matching doubleLRCXtoSRT.py logic"""
+def convert_lrcx_to_srt(lrcx_content, mode='intelligent'):
+    """Convert LRCX content to SRT format with selectable filtering modes"""
+    mode = (mode or 'intelligent').lower()
+    if mode not in {'original', 'intelligent', 'translation-only'}:
+        mode = 'intelligent'
+
     lines = lrcx_content.strip().split('\\n')
 
-    # Filter lines exactly like the Python script
-    tt_line_pattern = re.compile(r'\\[.*\\]\\[tt\\].*')  # Lines with [tt]
-    korean_char_pattern = re.compile(r'[\\u1100-\\u11FF\\uAC00-\\uD7AF]')  # Korean Hangul and Jamo
-    japanese_exclusive_pattern = re.compile(r'[\\u3040-\\u309F\\u30A0-\\u30FF]')  # Japanese Hiragana and Katakana
-    tr_zh_hans_pattern = re.compile(r'\\[tr:zh-Hans\\]')  # [tr:zh-Hans] tag
+    tt_line_pattern = re.compile(r'\\[.*\\]\\[tt\\].*')
+    korean_char_pattern = re.compile(r'[\\u1100-\\u11FF\\uAC00-\\uD7AF]')
+    japanese_exclusive_pattern = re.compile(r'[\\u3040-\\u309F\\u30A0-\\u30FF]')
+    tr_zh_hans_pattern = re.compile(r'\\[tr:zh-Hans\\]')
 
     filtered_lines = []
-    timestamps_seen = set()
+    original_timestamps = set()
+    translation_timestamps = set()
 
-    for line in lines:
-        # Skip lines with [tt] tag, Korean characters, or Japanese-exclusive characters
-        if (tt_line_pattern.search(line) or
-            korean_char_pattern.search(line) or
-            japanese_exclusive_pattern.search(line)):
+    for raw_line in lines:
+        stripped_line = raw_line.strip()
+        if not stripped_line:
             continue
 
-        # Check for timestamp and Chinese translation tag
-        timestamp_match = re.match(r'\\[(\\d{2}:\\d{2}\\.\\d{2,3})\\]', line)
-        if timestamp_match:
-            timestamp = timestamp_match.group(1)
-            is_chinese_line = tr_zh_hans_pattern.search(line)
+        if tt_line_pattern.search(stripped_line):
+            continue
 
-            # If it's a Chinese line and timestamp already exists, skip it
-            if is_chinese_line and timestamp in timestamps_seen:
+        timestamp_match = re.match(r'\\[(\\d{1,2}:\\d{2}\\.\\d{2,3})\\]', stripped_line)
+        timestamp = timestamp_match.group(1) if timestamp_match else None
+
+        has_translation = bool(tr_zh_hans_pattern.search(stripped_line))
+        has_korean = bool(korean_char_pattern.search(stripped_line))
+        has_japanese = bool(japanese_exclusive_pattern.search(stripped_line))
+
+        include_line = False
+
+        if mode == 'original':
+            include_line = not has_translation
+        elif mode == 'translation-only':
+            if has_translation and (not timestamp or timestamp not in translation_timestamps):
+                include_line = True
+        else:  # intelligent
+            if has_translation:
+                if timestamp and timestamp in original_timestamps:
+                    include_line = False
+                elif not timestamp or timestamp not in translation_timestamps:
+                    include_line = True
+            else:
+                if not has_korean and not has_japanese:
+                    include_line = True
+
+        if include_line:
+            cleaned_line = tr_zh_hans_pattern.sub('', stripped_line).strip()
+            if not cleaned_line:
                 continue
 
-            # If it's not a Chinese line, mark timestamp as seen
-            if not is_chinese_line:
-                timestamps_seen.add(timestamp)
+            if has_translation and timestamp:
+                translation_timestamps.add(timestamp)
+            if not has_translation and timestamp:
+                original_timestamps.add(timestamp)
 
-        # Remove Chinese translation tag
-        line = tr_zh_hans_pattern.sub('', line)
-        filtered_lines.append(line)
+            filtered_lines.append(cleaned_line)
 
-    # Now convert filtered lines to SRT
     srt_lines = []
     subtitle_index = 1
 
@@ -61,47 +83,46 @@ def convert_lrcx_to_srt(lrcx_content):
         if not line:
             continue
 
-        # Match timestamp format [mm:ss.xx] or [mm:ss.xxx]
         match = re.match(r'^\\[(\\d{1,2}):(\\d{2})\\.(\\d{2,3})\\](.*)$', line)
         if match:
             minutes = int(match.group(1))
             seconds = int(match.group(2))
-            centiseconds = int(match.group(3))
+            fraction_part = match.group(3)
             text = match.group(4).strip()
 
-            # Handle 3-digit milliseconds vs 2-digit centiseconds
-            if len(match.group(3)) == 3:
-                centiseconds = centiseconds // 10
+            if len(fraction_part) == 3:
+                fractional_ms = int(fraction_part)
+            else:
+                fractional_ms = int(fraction_part) * 10
 
-            if text:  # Only process lines with actual text content
-                # Convert to total milliseconds
-                start_time_ms = (minutes * 60 + seconds) * 1000 + centiseconds * 10
-
-                # Find next subtitle for end time calculation
-                end_time_ms = start_time_ms + 3000  # Default 3 seconds
+            if text:
+                start_time_ms = (minutes * 60 + seconds) * 1000 + fractional_ms
+                end_time_ms = start_time_ms + 3000
 
                 for j in range(i + 1, len(filtered_lines)):
                     next_line = filtered_lines[j].strip()
                     if next_line:
                         next_match = re.match(r'^\\[(\\d{1,2}):(\\d{2})\\.(\\d{2,3})\\](.*)$', next_line)
-                        if next_match and next_match.group(4).strip():  # Next line has text
+                        if next_match and next_match.group(4).strip():
                             next_minutes = int(next_match.group(1))
                             next_seconds = int(next_match.group(2))
-                            next_centiseconds = int(next_match.group(3))
-                            if len(next_match.group(3)) == 3:
-                                next_centiseconds = next_centiseconds // 10
-                            next_start_ms = (next_minutes * 60 + next_seconds) * 1000 + next_centiseconds * 10
-                            end_time_ms = min(end_time_ms, next_start_ms - 100)
+                            next_fraction_part = next_match.group(3)
+                            if len(next_fraction_part) == 3:
+                                next_fractional_ms = int(next_fraction_part)
+                            else:
+                                next_fractional_ms = int(next_fraction_part) * 10
+                            next_start_ms = (next_minutes * 60 + next_seconds) * 1000 + next_fractional_ms
+                            if next_start_ms > start_time_ms:
+                                end_time_ms = max(start_time_ms + 10, next_start_ms - 1)
                             break
 
-                # Format as SRT
                 start_time_str = format_srt_time(start_time_ms)
                 end_time_str = format_srt_time(end_time_ms)
 
                 srt_lines.append(f"{subtitle_index}")
                 srt_lines.append(f"{start_time_str} --> {end_time_str}")
                 srt_lines.append(text)
-                srt_lines.append("")  # Empty line between subtitles
+                srt_lines.append("")
 
                 subtitle_index += 1
 
@@ -284,7 +305,8 @@ async function convertWithPython(content, converterType, options = {}) {
     let result;
     switch(converterType) {
         case 'lrcx-to-srt':
-            result = pyodide.runPython(`convert_lrcx_to_srt(input_content)`);
+            pyodide.globals.set("lrcx_mode", (options.mode || 'intelligent'));
+            result = pyodide.runPython(`convert_lrcx_to_srt(input_content, lrcx_mode)`);
             break;
         case 'vtt-to-srt':
             result = pyodide.runPython(`convert_vtt_to_srt(input_content)`);

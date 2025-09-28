@@ -3,9 +3,16 @@
 // Handle file upload processing
 function handleFileUpload(files) {
     if (files.length === 0) return;
+    if (typeof manualInputMode !== 'undefined' && manualInputMode) {
+        return;
+    }
 
     uploadedFile = files;
     document.getElementById('processBtn').disabled = false;
+
+    if (typeof updateProcessButtonState === 'function') {
+        updateProcessButtonState();
+    }
 
     // Update upload area to show file info
     const uploadArea = document.getElementById('uploadArea');
