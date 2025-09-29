@@ -4,7 +4,7 @@ const blogPosts = [
 
 
     {
-        id: 2,
+        id: 3,
         title: "What Are .lrcx files?",
         date: "2025-09-30",
         content: `It's a specialized lyrics format from https://github.com/MxIris-LyricsX-Project/LyricsX.
@@ -21,9 +21,19 @@ These files are an evolvement of normal .lrc files, providing translation and pr
 [02:11.687][tt]<0,0><383,4><716,7><1092,12><2081,15><2473>\`\`\``
     },
     {
+        id: 2,
+        title: "Where do I get subtitles?",
+        date: "2025-09-26",
+        content: `As someone who works primarily with music videos, the most legal way would be to fetch subtitles (.srt format) from official sources like YouTube's captions.
+
+If you wanted to make .srt subtitles for your own videos, you could use tools like **Aegisub** for manual edits or **CapCut** for auto-generated captions. Wrappers for OpenAI's **Whisper** model also exist as a great tool, and these tools all export to .srt/.vtt format which most editing software and video sites support.
+
+As for .lrc lyrics files, there are resources for fetching those easily found online, but the legality of this process is in a gray area. Always ensure you have the right to use and distribute any subtitles or lyrics you find or create.`
+    },
+    {
         id: 1,
         title: "Welcome to the EditKit Blog",
-        date: "2025-09-28",
+        date: "2025-09-25",
         content: `I'll be sharing thoughts on video editing workflows, tool development, and the creative process.`
     }
 ];
@@ -91,8 +101,11 @@ function formatContent(text) {
     // Convert code blocks (```...```)
     escaped = escaped.replace(/```([\s\S]*?)```/g, '<pre class="bg-fcp-dark p-4 rounded mt-3 mb-3 overflow-x-auto"><code class="text-sm text-fcp-text font-mono whitespace-pre">$1</code></pre>');
 
-    // Convert bold (**text**)
+    // Convert bold (**text**) - do this before italics
     escaped = escaped.replace(/\*\*(.*?)\*\*/g, '<strong class="text-fcp-text font-semibold">$1</strong>');
+
+    // Convert italics (*text*)
+    escaped = escaped.replace(/\*([^*]+?)\*/g, '<em class="italic">$1</em>');
 
     // Convert URLs to clickable links (exclude trailing punctuation)
     const urlRegex = /(https?:\/\/[^\s]+?)([.,;:!?)]*)(\s|$)/g;
