@@ -13,8 +13,11 @@ Browser-based workflow tools for video editors. No installations, no servers, no
 ## Key Features
 
 ✨ **Runs entirely in your browser** - All processing happens client-side
+
 🔒 **Privacy first** - Your files never leave your machine
+
 ⚡ **No setup required** - Open and start working immediately
+
 🆓 **Free forever** - Open source and always will be
 
 ## Tech Stack
