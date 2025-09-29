@@ -7,9 +7,9 @@ const blogPosts = [
         id: 3,
         title: "What Are .lrcx files?",
         date: "2025-09-30",
-        content: `It's a specialized lyrics format from https://github.com/MxIris-LyricsX-Project/LyricsX.
+        content: `It's a specialized lyrics format from the app https://github.com/MxIris-LyricsX-Project/LyricsX.
 
-These files are an evolvement of normal .lrc files, providing translation and precise timestamp layers within lines. Its origins proved to be difficult to trace as the format is not widely documented, mostly appearing on Chinese internet. The format LyricsX uses may differ variously from previous implementations.
+These files are an evolvement of normal .lrc files, providing translation and precise timestamp layers within lines. Its origins proved to be difficult to trace as the format is not widely documented, mostly appearing on Chinese softwares. The format LyricsX uses may differ variously from previous implementations.
 
 
 **Example of .lrcx content:**
