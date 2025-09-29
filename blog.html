@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blog - EditKit</title>
+    <link rel="apple-touch-icon" sizes="180x180" href="favicon_io/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon_io/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="favicon_io/favicon-16x16.png">
+    <link rel="manifest" href="favicon_io/site.webmanifest">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'fcp-dark': '#1C1C1E',
+                        'fcp-gray': '#2A2A2D',
+                        'fcp-border': '#3A3A3E',
+                        'fcp-text': '#F2F2F7',
+                        'fcp-text-secondary': '#A1A1AA',
+                        'fcp-accent': '#0A84FF',
+                        'fcp-success': '#30D158',
+                        'fcp-destructive': '#FF453A',
+                    },
+                    fontFamily: {
+                        'sans': ['Poppins', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-fcp-dark text-fcp-text font-sans">
+    <!-- Navigation -->
+    <nav class="bg-fcp-gray border-b border-fcp-border">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center">
+                    <a href="index.html" class="flex items-center space-x-3 group transition-transform hover:scale-105">
+                        <img src="logo.png" alt="EditKit" class="h-10 w-10 transition-transform group-hover:rotate-3">
+                        <h1 class="text-xl font-semibold tracking-tight group-hover:text-opacity-80 transition-colors">
+                            <span class="text-fcp-text">Edit</span><span class="text-blue-400">Kit</span>
+                        </h1>
+                    </a>
+                </div>
+                <div class="hidden md:block">
+                    <div class="ml-10 flex items-baseline space-x-4">
+                        <a href="index.html" class="px-3 py-2 rounded-md text-sm font-medium text-gray-300 hover:text-white hover:bg-gray-700 transition-colors">Home</a>
+                        <a href="lut-previewer.html" class="px-3 py-2 rounded-md text-sm font-medium text-gray-300 hover:text-white hover:bg-gray-700 transition-colors">LUT Previewer</a>
+                        <a href="subtitles.html" class="px-3 py-2 rounded-md text-sm font-medium text-gray-300 hover:text-white hover:bg-gray-700 transition-colors">Subtitles</a>
+                        <a href="blog.html" class="px-3 py-2 rounded-md text-sm font-medium text-white bg-gray-700">Blog</a>
+                        <a href="about.html" class="px-3 py-2 rounded-md text-sm font-medium text-gray-300 hover:text-white hover:bg-gray-700 transition-colors">About</a>
+                    </div>
+                </div>
+                <!-- Mobile menu button -->
+                <div class="md:hidden">
+                    <button id="mobile-menu-button" class="bg-gray-800 inline-flex items-center justify-center p-2 rounded-md text-fcp-text-secondary hover:text-white hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-white">
+                        <svg class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <!-- Mobile menu -->
+        <div id="mobile-menu" class="md:hidden hidden">
+            <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-gray-800">
+                <a href="index.html" class="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-white hover:bg-gray-700">Home</a>
+                <a href="lut-previewer.html" class="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-white hover:bg-gray-700">LUT Previewer</a>
+                <a href="subtitles.html" class="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-white hover:bg-gray-700">Subtitles</a>
+                <a href="blog.html" class="block px-3 py-2 rounded-md text-base font-medium text-white bg-gray-700">Blog</a>
+                <a href="about.html" class="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-white hover:bg-gray-700">About</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-4xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+        <h1 class="text-4xl font-bold text-fcp-text mb-8">Blog</h1>
+
+        <!-- Blog posts will be injected here -->
+        <div id="blog-posts" class="space-y-6">
+            <!-- Loading state -->
+            <div class="text-center py-12">
+                <p class="text-fcp-text-secondary">Loading posts...</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-fcp-gray border-t border-fcp-border mt-16">
+        <div class="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+            <div class="text-center">
+                <p class="text-fcp-text-secondary text-sm">
+                    © 2025 EditKit. Streamlined workflow utilities for video editors.
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/main.js"></script>
+    <script src="js/blog.js"></script>
+</body>
+</html>
