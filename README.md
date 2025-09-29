@@ -26,7 +26,7 @@ Built with HTML, CSS (Tailwind), JavaScript, and Pyodide for Python processing. 
 
 ## Contributing
 
-Found a bug or have a feature request? [Open an issue](https://github.com/YOUR_USERNAME/YOUR_REPO/issues) or submit a pull request.
+Found a bug or have a feature request? [Open an issue](https://github.com/ronlu-o/EditKit/issues) or submit a pull request.
 
 ## License
 
