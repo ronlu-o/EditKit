@@ -24,7 +24,7 @@ These files are an evolvement of normal .lrc files, providing translation and pr
         id: 2,
         title: "Where do I get subtitles?",
         date: "2025-09-26",
-        content: `As someone who works primarily with music videos, the most legal way would be to fetch subtitles (.srt format) from official sources like YouTube's captions.
+        content: `As someone who works primarily with music videos, the best way would be to fetch subtitles (.srt format) from official sources like YouTube's captions.
 
 If you wanted to make .srt subtitles for your own videos, you could use tools like **Aegisub** for manual edits or **CapCut** for auto-generated captions. Wrappers for OpenAI's **Whisper** model also exist as a great tool, and these tools all export to .srt/.vtt format which most editing software and video sites support.
 
