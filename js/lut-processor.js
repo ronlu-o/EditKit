@@ -157,10 +157,8 @@ class LUTProcessor {
         );
 
         for (const lut of activeLUTs) {
-            if (lut.enabled) {
-                const effectiveIntensity = lut.intensity * globalIntensity;
-                result = this.applyLUT(result, lut, effectiveIntensity);
-            }
+            const effectiveIntensity = lut.intensity * globalIntensity;
+            result = this.applyLUT(result, lut, effectiveIntensity);
         }
 
         return result;
@@ -214,12 +212,45 @@ class LUTProcessor {
             throw new Error('Canvas not set');
         }
 
-        // Resize canvas to match image
-        this.canvas.width = imageElement.naturalWidth;
-        this.canvas.height = imageElement.naturalHeight;
+        const naturalWidth = imageElement.naturalWidth;
+        const naturalHeight = imageElement.naturalHeight;
+        const aspectRatio = naturalWidth / naturalHeight;
 
-        // Draw original image
-        this.ctx.drawImage(imageElement, 0, 0);
+        // Cap aspect ratio to 21:9 for horizontal and 9:21 for vertical
+        const maxHorizontalAspect = 21 / 9; // ~2.33
+        const maxVerticalAspect = 9 / 21; // ~0.43
+
+        let width = naturalWidth;
+        let height = naturalHeight;
+        let sourceX = 0;
+        let sourceY = 0;
+        let sourceWidth = naturalWidth;
+        let sourceHeight = naturalHeight;
+
+        if (aspectRatio > maxHorizontalAspect) {
+            // Too wide - crop to 21:9
+            sourceHeight = Math.round(naturalWidth / maxHorizontalAspect);
+            sourceY = (naturalHeight - sourceHeight) / 2;
+            height = sourceHeight;
+        } else if (aspectRatio < maxVerticalAspect) {
+            // Too tall - crop to 9:21
+            sourceWidth = Math.round(naturalHeight * maxVerticalAspect);
+            sourceX = (naturalWidth - sourceWidth) / 2;
+            width = sourceWidth;
+        }
+
+        // Resize canvas to match calculated dimensions
+        this.canvas.width = width;
+        this.canvas.height = height;
+
+        // Draw image (with cropping if needed, using center crop)
+        this.ctx.drawImage(
+            imageElement,
+            sourceX, sourceY,
+            sourceWidth, sourceHeight,
+            0, 0,
+            width, height
+        );
 
         // Store original image data
         this.originalImageData = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);

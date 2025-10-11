@@ -185,8 +185,8 @@ function setupCleanerModal(additionalOptions) {
                         <span class="text-gray-300">Remove empty subtitles</span>
                     </label>
                     <label class="flex items-center space-x-2 cursor-pointer">
-                        <input type="checkbox" id="removeDuplicates" class="rounded bg-fcp-dark border-gray-600 text-fcp-accent focus:ring-fcp-accent">
-                        <span class="text-gray-300">Remove duplicate subtitles</span>
+                        <input type="checkbox" id="makeContinuous" class="rounded bg-fcp-dark border-gray-600 text-fcp-accent focus:ring-fcp-accent">
+                        <span class="text-gray-300">Make subtitles continuous (extend until next line)</span>
                     </label>
                     <label class="flex items-center space-x-2 cursor-pointer">
                         <input type="checkbox" id="fixTiming" class="rounded bg-fcp-dark border-gray-600 text-fcp-accent focus:ring-fcp-accent">

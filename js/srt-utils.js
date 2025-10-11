@@ -198,17 +198,16 @@ function cleanSrtFile(content, options) {
         };
     }).filter(block => block !== null);
 
-    // Remove duplicates if requested
-    if (options.removeDuplicates) {
-        const seen = new Set();
-        cleanedBlocks = cleanedBlocks.filter(block => {
-            const key = block.text.toLowerCase().trim();
-            if (seen.has(key)) {
-                return false;
-            }
-            seen.add(key);
-            return true;
-        });
+    // Make subtitles continuous if requested
+    if (options.makeContinuous) {
+        for (let i = 0; i < cleanedBlocks.length - 1; i++) {
+            const current = cleanedBlocks[i];
+            const next = cleanedBlocks[i + 1];
+
+            // Extend current subtitle to start of next subtitle
+            current.endTime = next.startTime;
+            current.timestamp = `${formatSrtTimeFromSeconds(current.startTime)} --> ${formatSrtTimeFromSeconds(current.endTime)}`;
+        }
     }
 
     // Fix timing overlaps if requested

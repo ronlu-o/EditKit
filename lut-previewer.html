@@ -72,14 +72,17 @@
 
         /* Canvas container styling */
         #canvasContainer {
-            max-height: 70vh;
-            overflow: auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         #previewCanvas {
-            object-fit: contain;
             max-width: 100%;
+            max-height: 85vh;
+            width: auto;
             height: auto;
+            object-fit: contain;
         }
 
         /* Drag and drop styling */
@@ -244,10 +247,6 @@
                                 <span id="globalIntensityValue">100%</span>
                                 <span>100%</span>
                             </div>
-                        </div>
-                        <div class="flex space-x-2">
-                            <button id="enableAllBtn" class="flex-1 px-3 py-2 text-sm bg-fcp-accent text-fcp-text rounded hover:bg-opacity-80 transition-colors">Enable All</button>
-                            <button id="disableAllBtn" class="flex-1 px-3 py-2 text-sm bg-gray-700 text-gray-300 rounded hover:bg-gray-600 transition-colors">Disable All</button>
                         </div>
                     </div>
                 </div>

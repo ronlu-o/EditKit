@@ -23,8 +23,6 @@ class LUTPreviewer {
         this.globalIntensityValue = document.getElementById('globalIntensityValue');
         this.resetBtn = document.getElementById('resetBtn');
         this.downloadBtn = document.getElementById('downloadBtn');
-        this.enableAllBtn = document.getElementById('enableAllBtn');
-        this.disableAllBtn = document.getElementById('disableAllBtn');
 
         // Set up canvas in processor
         this.processor.setCanvas(this.previewCanvas);
@@ -47,8 +45,6 @@ class LUTPreviewer {
         this.globalIntensitySlider.addEventListener('input', (e) => this.handleGlobalIntensityChange(e));
         this.resetBtn.addEventListener('click', () => this.resetImage());
         this.downloadBtn.addEventListener('click', () => this.downloadImage());
-        this.enableAllBtn.addEventListener('click', () => this.toggleAllLUTs(true));
-        this.disableAllBtn.addEventListener('click', () => this.toggleAllLUTs(false));
     }
 
     handleDragOver(e) {
@@ -240,7 +236,6 @@ class LUTPreviewer {
     }
 
     resetImage() {
-        this.processor.reset();
         this.globalIntensitySlider.value = 100;
         this.globalIntensity = 1.0;
         this.globalIntensityValue.textContent = '100%';
@@ -259,6 +254,9 @@ class LUTPreviewer {
 
             this.processor.updateLUT(filename, { enabled: true, intensity: 1.0 });
         });
+
+        // Re-process the image with all LUTs enabled
+        this.processCurrentImage();
     }
 
     toggleAllLUTs(enabled) {

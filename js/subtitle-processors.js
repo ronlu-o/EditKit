@@ -193,7 +193,7 @@ async function processSrtCleaner(file) {
             // Get cleaning options
             const options = {
                 fixNumbering: document.getElementById('fixNumbering')?.checked || false,
-                removeDuplicates: document.getElementById('removeDuplicates')?.checked || false,
+                makeContinuous: document.getElementById('makeContinuous')?.checked || false,
                 removeEmpty: document.getElementById('removeEmpty')?.checked || false,
                 fixTiming: document.getElementById('fixTiming')?.checked || false,
                 removeSoundEffects: document.getElementById('removeSoundEffects')?.checked || false,
@@ -222,7 +222,7 @@ async function processSrtCleanerText(content) {
         // Get cleaning options
         const options = {
             fixNumbering: document.getElementById('fixNumbering')?.checked || false,
-            removeDuplicates: document.getElementById('removeDuplicates')?.checked || false,
+            makeContinuous: document.getElementById('makeContinuous')?.checked || false,
             removeEmpty: document.getElementById('removeEmpty')?.checked || false,
             fixTiming: document.getElementById('fixTiming')?.checked || false,
             removeSoundEffects: document.getElementById('removeSoundEffects')?.checked || false,

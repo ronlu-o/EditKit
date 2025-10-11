@@ -24,7 +24,8 @@ These files are an evolvement of normal .lrc files, providing translation and pr
         id: 2,
         title: "Where do I get subtitles?",
         date: "2025-09-26",
-        content: `As someone who works primarily with music videos, the best way would be to fetch subtitles (.srt format) from official sources like YouTube's captions.
+        pinned: true,
+        content: `As someone who works primarily with music videos, the best way to fetch subtitles would be from official sources like YouTube's captions. There are many readily tools online that can download these in .srt/.vtt format.
 
 If you wanted to make .srt subtitles for your own videos, you could use tools like **Aegisub** for manual edits or **CapCut** for auto-generated captions. Wrappers for OpenAI's **Whisper** model also exist as a great tool, and these tools all export to .srt/.vtt format which most editing software and video sites support.
 
@@ -54,12 +55,19 @@ function loadBlogPosts() {
             return;
         }
 
-        // Sort posts by date (newest first)
-        posts.sort((a, b) => new Date(b.date) - new Date(a.date));
+        // Sort posts: pinned first, then by date (newest first)
+        posts.sort((a, b) => {
+            // Pinned posts always come first
+            if (a.pinned && !b.pinned) return -1;
+            if (!a.pinned && b.pinned) return 1;
+            // If both pinned or both not pinned, sort by date
+            return new Date(b.date) - new Date(a.date);
+        });
 
         // Render posts
         postsContainer.innerHTML = posts.map(post => `
-            <article class="bg-fcp-gray p-6 rounded-lg border border-fcp-border hover:border-fcp-accent transition-all">
+            <article class="bg-fcp-gray p-6 rounded-lg border border-fcp-border hover:border-fcp-accent transition-all ${post.pinned ? 'ring-2 ring-fcp-accent' : ''}">
+                ${post.pinned ? '<div class="inline-block bg-fcp-accent text-white text-xs font-semibold px-2 py-1 rounded mb-3">PINNED</div>' : ''}
                 <h2 class="text-2xl font-semibold text-fcp-text mb-2">${escapeHtml(post.title)}</h2>
                 <time class="text-sm text-fcp-text-secondary mb-4 block">${formatDate(post.date)}</time>
                 <div class="text-fcp-text-secondary">${formatContent(post.content)}</div>
