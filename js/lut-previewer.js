@@ -206,7 +206,15 @@ class LUTPreviewer {
 
     handleGlobalIntensityChange(e) {
         this.globalIntensity = e.target.value / 100;
-        this.globalIntensityValue.textContent = `${e.target.value}%`;
+        const value = parseInt(e.target.value);
+
+        // Show middle value only between 1-99%
+        if (value > 0 && value < 100) {
+            this.globalIntensityValue.textContent = `${value}%`;
+            this.globalIntensityValue.classList.remove('hidden');
+        } else {
+            this.globalIntensityValue.classList.add('hidden');
+        }
 
         // Debounce global intensity slider too
         clearTimeout(this.globalSliderTimeout);
