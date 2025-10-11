@@ -34,6 +34,37 @@
             }
         }
     </script>
+    <style>
+        /* Custom scrollbar styling for modal */
+        #uploadModal .max-h-\[90vh\]::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        #uploadModal .max-h-\[90vh\]::-webkit-scrollbar-track {
+            background: #2A2A2D;
+            border-radius: 8px;
+        }
+
+        #uploadModal .max-h-\[90vh\]::-webkit-scrollbar-thumb {
+            background: #3A3A3E;
+            border-radius: 8px;
+            border: 2px solid #2A2A2D;
+        }
+
+        #uploadModal .max-h-\[90vh\]::-webkit-scrollbar-thumb:hover {
+            background: #4A4A4E;
+        }
+
+        #uploadModal .max-h-\[90vh\]::-webkit-scrollbar-thumb:active {
+            background: #0A84FF;
+        }
+
+        /* Firefox scrollbar */
+        #uploadModal .max-h-\[90vh\] {
+            scrollbar-width: thin;
+            scrollbar-color: #3A3A3E #2A2A2D;
+        }
+    </style>
 </head>
 <body class="bg-fcp-dark text-fcp-text font-sans">
     <!-- Navigation -->
@@ -190,12 +221,29 @@
                     </svg>
                 </div>
             </div>
+
+            <!-- LRC/X Cleaner -->
+            <div class="bg-fcp-gray p-6 rounded-lg border border-fcp-border hover:border-fcp-accent transition-all cursor-pointer group" onclick="openTool('lrcx-cleaner')">
+                <div class="w-16 h-16 bg-fcp-accent rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                    <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path>
+                    </svg>
+                </div>
+                <h3 class="text-xl font-semibold text-fcp-text mb-2">LRC/X Cleaner</h3>
+                <p class="text-fcp-text-secondary text-sm mb-4">Clean and remove unwanted tags, metadata, and empty lines from LRC/LRCX files.</p>
+                <div class="flex items-center text-fcp-accent text-sm">
+                    <span>Click to upload LRC/LRCX file</span>
+                    <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                    </svg>
+                </div>
+            </div>
         </div>
     </main>
 
     <!-- File Upload Modal -->
-    <div id="uploadModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center">
-        <div class="bg-fcp-gray p-8 rounded-lg border border-fcp-border max-w-md w-full mx-4">
+    <div id="uploadModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-fcp-gray p-8 rounded-lg border border-fcp-border max-w-md w-full max-h-[90vh] overflow-y-auto">
             <div class="flex justify-between items-center mb-6">
                 <h3 id="modalTitle" class="text-xl font-semibold text-white">Upload File</h3>
                 <button onclick="closeModal()" class="text-gray-400 hover:text-white">

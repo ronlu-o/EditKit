@@ -64,6 +64,23 @@ function openTool(toolType) {
             modalTitle.textContent = 'Convert LRC/VTT to SRT';
             fileTypes.textContent = 'Supported: .lrc, .vtt files';
             fileInput.accept = '.lrc,.vtt';
+            additionalOptions.innerHTML = `
+                <div id="manualInputSection" class="space-y-4">
+                    <button id="toggleManualInput" type="button" class="w-full bg-fcp-accent text-white py-2 px-4 rounded hover:bg-blue-600 transition-colors">
+                        Paste LRC/VTT manually
+                    </button>
+                    <div id="manualInputContainer" class="hidden space-y-3 border border-gray-600 rounded-lg p-4 bg-fcp-dark">
+                        <div class="flex items-center justify-between">
+                            <label for="manualInputTextarea" class="text-sm font-medium text-gray-300">Manual LRC/VTT content</label>
+                            <button id="exitManualInput" type="button" class="text-sm text-gray-400 hover:text-white">Back to file upload</button>
+                        </div>
+                        <textarea id="manualInputTextarea" rows="10" placeholder="Paste your .lrc or .vtt file contents here" class="w-full p-3 bg-black border border-gray-700 rounded text-white placeholder-gray-500 focus:border-fcp-accent focus:outline-none"></textarea>
+                        <p class="text-xs text-gray-500">Your pasted text stays in this browser tab only.</p>
+                    </div>
+                </div>
+            `;
+            additionalOptions.classList.remove('hidden');
+            initializeGenericManualInputControls();
             break;
         case 'srt-time-shift':
             setupTimeShiftModal(additionalOptions);
@@ -78,6 +95,9 @@ function openTool(toolType) {
             modalTitle.textContent = 'Convert BCC to SRT';
             fileTypes.textContent = 'Supported: .bcc files (Bilibili)';
             fileInput.accept = '.bcc';
+            break;
+        case 'lrcx-cleaner':
+            setupLrcxCleanerModal(additionalOptions);
             break;
     }
 
@@ -196,9 +216,71 @@ function setupCleanerModal(additionalOptions) {
                        class="w-full p-3 bg-fcp-dark border border-gray-600 rounded text-white placeholder-gray-400 focus:border-fcp-accent focus:outline-none">
                 <p class="text-xs text-gray-400 mt-1">Remove subtitles shorter than this duration</p>
             </div>
+            <div id="manualInputSection" class="space-y-4 border-t border-gray-600 pt-4">
+                <button id="toggleManualInput" type="button" class="w-full bg-fcp-accent text-white py-2 px-4 rounded hover:bg-blue-600 transition-colors">
+                    Paste SRT manually
+                </button>
+                <div id="manualInputContainer" class="hidden space-y-3 border border-gray-600 rounded-lg p-4 bg-fcp-dark">
+                    <div class="flex items-center justify-between">
+                        <label for="manualInputTextarea" class="text-sm font-medium text-gray-300">Manual SRT content</label>
+                        <button id="exitManualInput" type="button" class="text-sm text-gray-400 hover:text-white">Back to file upload</button>
+                    </div>
+                    <textarea id="manualInputTextarea" rows="10" placeholder="Paste your .srt file contents here" class="w-full p-3 bg-black border border-gray-700 rounded text-white placeholder-gray-500 focus:border-fcp-accent focus:outline-none"></textarea>
+                    <p class="text-xs text-gray-500">Your pasted text stays in this browser tab only.</p>
+                </div>
+            </div>
         </div>
     `;
     additionalOptions.classList.remove('hidden');
+    initializeGenericManualInputControls();
+}
+
+// Setup LRCX cleaner modal options
+function setupLrcxCleanerModal(additionalOptions) {
+    const modalTitle = document.getElementById('modalTitle');
+    const fileTypes = document.getElementById('fileTypes');
+    const fileInput = document.getElementById('fileInput');
+
+    modalTitle.textContent = 'Clean LRC/LRCX File';
+    fileTypes.textContent = 'Supported: .lrc, .lrcx files';
+    fileInput.accept = '.lrc,.lrcx';
+
+    additionalOptions.innerHTML = `
+        <div class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-300 mb-3">Cleaning Options</label>
+                <div class="grid grid-cols-1 gap-2 text-sm">
+                    <label class="flex items-center space-x-2 cursor-pointer">
+                        <input type="checkbox" id="removeTt" checked class="rounded bg-fcp-dark border-gray-600 text-fcp-accent focus:ring-fcp-accent">
+                        <span class="text-gray-300">Remove [tt] translation timing lines</span>
+                    </label>
+                    <label class="flex items-center space-x-2 cursor-pointer">
+                        <input type="checkbox" id="removeMetadata" checked class="rounded bg-fcp-dark border-gray-600 text-fcp-accent focus:ring-fcp-accent">
+                        <span class="text-gray-300">Remove metadata tags ([offset:], [al:], [ti:], [ar:], etc.)</span>
+                    </label>
+                    <label class="flex items-center space-x-2 cursor-pointer">
+                        <input type="checkbox" id="removeEmptyLines" checked class="rounded bg-fcp-dark border-gray-600 text-fcp-accent focus:ring-fcp-accent">
+                        <span class="text-gray-300">Remove empty lines (timecodes with no lyrics)</span>
+                    </label>
+                </div>
+            </div>
+            <div id="manualInputSection" class="space-y-4 border-t border-gray-600 pt-4">
+                <button id="toggleManualInput" type="button" class="w-full bg-fcp-accent text-white py-2 px-4 rounded hover:bg-blue-600 transition-colors">
+                    Paste LRC/LRCX manually
+                </button>
+                <div id="manualInputContainer" class="hidden space-y-3 border border-gray-600 rounded-lg p-4 bg-fcp-dark">
+                    <div class="flex items-center justify-between">
+                        <label for="manualInputTextarea" class="text-sm font-medium text-gray-300">Manual LRC/LRCX content</label>
+                        <button id="exitManualInput" type="button" class="text-sm text-gray-400 hover:text-white">Back to file upload</button>
+                    </div>
+                    <textarea id="manualInputTextarea" rows="10" placeholder="Paste your .lrc or .lrcx file contents here" class="w-full p-3 bg-black border border-gray-700 rounded text-white placeholder-gray-500 focus:border-fcp-accent focus:outline-none"></textarea>
+                    <p class="text-xs text-gray-500">Your pasted text stays in this browser tab only.</p>
+                </div>
+            </div>
+        </div>
+    `;
+    additionalOptions.classList.remove('hidden');
+    initializeGenericManualInputControls();
 }
 
 // Close modal and reset state
@@ -361,6 +443,34 @@ function updateLrcxModeButtons() {
     });
 }
 
+// Generic manual input controls for other tools
+function initializeGenericManualInputControls() {
+    const toggleButton = document.getElementById('toggleManualInput');
+    const exitButton = document.getElementById('exitManualInput');
+    const textarea = document.getElementById('manualInputTextarea');
+
+    if (toggleButton) {
+        toggleButton.addEventListener('click', (event) => {
+            event.preventDefault();
+            activateManualInput();
+        });
+    }
+
+    if (exitButton) {
+        exitButton.addEventListener('click', (event) => {
+            event.preventDefault();
+            deactivateManualInput();
+        });
+    }
+
+    if (textarea) {
+        textarea.addEventListener('input', (event) => {
+            manualInputContent = event.target.value;
+            updateGenericProcessButtonState();
+        });
+    }
+}
+
 function updateProcessButtonState() {
     const processBtn = document.getElementById('processBtn');
     if (!processBtn || currentTool !== 'lrcx-to-srt') return;
@@ -372,9 +482,23 @@ function updateProcessButtonState() {
     }
 }
 
+function updateGenericProcessButtonState() {
+    const processBtn = document.getElementById('processBtn');
+    if (!processBtn) return;
+
+    if (manualInputMode) {
+        processBtn.disabled = manualInputContent.trim().length === 0;
+    } else {
+        processBtn.disabled = !uploadedFile || uploadedFile.length === 0;
+    }
+}
+
 // Process file based on current tool
 function processFile() {
-    if (!uploadedFile && currentTool !== 'srt-creator' && !(currentTool === 'lrcx-to-srt' && manualInputMode)) {
+    const manualInputTools = ['lrcx-to-srt', 'lrcx-cleaner', 'vtt-to-srt', 'srt-cleaner'];
+    const supportsManualInput = manualInputTools.includes(currentTool) && manualInputMode;
+
+    if (!uploadedFile && currentTool !== 'srt-creator' && !supportsManualInput) {
         alert('Please upload a file first');
         return;
     }
@@ -394,11 +518,15 @@ function processFile() {
             }
             break;
         case 'vtt-to-srt':
-            const file = uploadedFile[0];
-            if (file.name.toLowerCase().endsWith('.lrc')) {
-                processLrcToSrt(file);
+            if (manualInputMode) {
+                processVttToSrtText(manualInputContent);
             } else {
-                processVttToSrt(file);
+                const file = uploadedFile[0];
+                if (file.name.toLowerCase().endsWith('.lrc')) {
+                    processLrcToSrt(file);
+                } else {
+                    processVttToSrt(file);
+                }
             }
             break;
         case 'srt-time-shift':
@@ -415,10 +543,21 @@ function processFile() {
             processSrtMerger(uploadedFile);
             break;
         case 'srt-cleaner':
-            processSrtCleaner(uploadedFile[0]);
+            if (manualInputMode) {
+                processSrtCleanerText(manualInputContent);
+            } else {
+                processSrtCleaner(uploadedFile[0]);
+            }
             break;
         case 'bcc-to-srt':
             processBccToSrt(uploadedFile[0]);
+            break;
+        case 'lrcx-cleaner':
+            if (manualInputMode) {
+                processLrcxCleanerText(manualInputContent);
+            } else {
+                processLrcxCleaner(uploadedFile[0]);
+            }
             break;
     }
 }
