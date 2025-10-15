@@ -1,33 +1,34 @@
 # EditKit
 
-**[🌐 Visit EditKit](https://editkit.pages.dev/)**
+**Browser-Based Workflow Tools for Video Editors.**
 
-Browser-based workflow tools for video editors. No installations, no servers, no data collection—just tools that work.
+[🌐 **Visit EditKit**](https://editkit.pages.dev/)
 
-## What's Inside
+No installations, no servers, and no data collection—just powerful tools that run instantly in your web browser.
 
-- **Subtitle Tools** - Convert, merge, sync, and clean subtitle files (SRT, VTT, LRCX)
-- **LUT Previewer** - Test .cube LUT files on images before applying in your editor
-- **Blog** - Thoughts on editing workflows and tool development
+## Why EditKit?
 
-## Key Features
+EditKit solves common file and preparation tasks without ever leaving your machine.
 
-✨ **Runs entirely in your browser** - All processing happens client-side
+* **⚡ Zero Setup:** Open the page and start working immediately.
+* **🔒 Privacy First:** Your files never leave your machine; all processing happens client-side.
+* **🆓 Free & Open Source:** The tools are free forever and built on an MIT License.
 
-🔒 **Privacy first** - Your files never leave your machine
+## Tools Included
 
-⚡ **No setup required** - Open and start working immediately
+We focus on client-side utilities that streamline your video workflow.
 
-🆓 **Free forever** - Open source and always will be
+* **Subtitle Converters:** Convert, merge, sync, and clean subtitle files (SRT, VTT, LRCX).
+* **LUT Previewer:** Instantly test `.cube` LUT files on your images before applying them in your main editor.
+* **Blog:** Thoughts and guides on editing workflows and tool development.
 
 ## Tech Stack
 
-Built with HTML, CSS (Tailwind), JavaScript, and Pyodide for Python processing. Fully static—host it anywhere.
+EditKit is built entirely from static assets, making it fast and easy to host:
+
+* **Frontend:** HTML, CSS (Tailwind), and JavaScript.
+* **Core Logic:** Pyodide for complex Python processing running directly in the browser.
 
 ## Contributing
 
-Found a bug or have a feature request? [Open an issue](https://github.com/ronlu-o/EditKit/issues) or submit a pull request.
-
-## License
-
-MIT License - Use freely and build upon it.
+We welcome contributions! If you found a bug or have a great feature idea, please [open an issue here](https://github.com/ronlu-o/EditKit/issues) or submit a pull request.
