@@ -2,9 +2,9 @@
 
 **Browser-Based Workflow Tools for Video Editors.**
 
-[🌐 **Visit EditKit**](https://editkit.pages.dev/)
+[🌐 **Visit EditKit**](https://editkit.net/)
 
-No installations, no servers, and no data collection—just powerful tools that run instantly in your web browser.
+No installations, no servers, and no data collection; just powerful tools that run instantly in your web browser.
 
 ## Why EditKit?
 
@@ -16,11 +16,16 @@ EditKit solves common file and preparation tasks without ever leaving your machi
 
 ## Tools Included
 
-We focus on client-side utilities that streamline your video workflow.
+Utilities that streamline other content creators' video workflow.
 
-* **Subtitle Converters:** Convert, merge, sync, and clean subtitle files (SRT, VTT, LRCX).
+* **Subtitle Converters:** Convert, merge, sync, and clean subtitle files (SRT, VTT, LRCX, etc.).
 * **LUT Previewer:** Instantly test `.cube` LUT files on your images before applying them in your main editor.
-* **Blog:** Thoughts and guides on editing workflows and tool development.
+
+## Why I Built This
+
+I've been stylizing and batch producing subtitles ever since I started creating content. There weren't many free softwares that helped with my workflow, so I started writing Python scripts to handle subtitle conversions, timing adjustments, and format cleanups: mostly piecing code together with limited programming knowledge from self-teaching.
+
+These tools come from those scripts, dating all the way back to 2022. And now that I've got more technological knowledge, I believe it was the adequate time to publish them.
 
 ## Tech Stack
 
@@ -31,4 +36,4 @@ EditKit is built entirely from static assets, making it fast and easy to host:
 
 ## Contributing
 
-We welcome contributions! If you found a bug or have a great feature idea, please [open an issue here](https://github.com/ronlu-o/EditKit/issues) or submit a pull request.
+Contributions are always welcomed! If you found a bug or have a great feature idea, please [open an issue here](https://github.com/ronlu-o/EditKit/issues) or submit a pull request.
