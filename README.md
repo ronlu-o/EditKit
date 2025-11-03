@@ -1,4 +1,4 @@
-# EditKit
+# <img src="logo.png" alt="EditKit Logo" width="40" height="40" align="left"> EditKit
 
 **Browser-Based Workflow Tools for Video Editors.**
 
