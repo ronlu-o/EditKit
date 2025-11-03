@@ -245,3 +245,170 @@ function readFileContent(file) {
         reader.readAsText(file);
     });
 }
+
+// Split a subtitle text line into two parts at the optimal position
+function splitSubtitleLine(text, maxChars) {
+    if (text.length <= maxChars) {
+        return [text];
+    }
+
+    // Check if text contains CJK characters (Chinese, Japanese, Korean)
+    const hasCJK = /[\u4e00-\u9fff\u3400-\u4dbf\u3040-\u309f\u30a0-\u30ff\uac00-\ud7af]/.test(text);
+
+    // Try to find a good split point
+    let splitPos = maxChars;
+
+    // First, try to split at a sentence boundary
+    // For CJK: 。！？，、
+    // For English: . ! ? (with optional space after)
+    const cjkPunctuation = /[。！？]/;
+    const englishPunctuation = /[.!?]\s+/g;
+
+    if (hasCJK) {
+        // Look for CJK sentence endings
+        for (let i = Math.min(maxChars, text.length - 1); i > maxChars * 0.4; i--) {
+            if (cjkPunctuation.test(text[i])) {
+                return [text.slice(0, i + 1).trim(), text.slice(i + 1).trim()];
+            }
+        }
+
+        // Look for CJK commas as secondary option
+        const cjkComma = /[，、]/;
+        for (let i = Math.min(maxChars, text.length - 1); i > maxChars * 0.4; i--) {
+            if (cjkComma.test(text[i])) {
+                return [text.slice(0, i + 1).trim(), text.slice(i + 1).trim()];
+            }
+        }
+
+        // For CJK without punctuation, just split at maxChars (no spaces needed)
+        return [text.slice(0, maxChars).trim(), text.slice(maxChars).trim()];
+    } else {
+        // English text handling
+        const sentenceMatch = text.slice(0, maxChars).match(englishPunctuation);
+        if (sentenceMatch) {
+            const lastSentence = text.slice(0, maxChars).lastIndexOf(sentenceMatch[sentenceMatch.length - 1]);
+            if (lastSentence > maxChars * 0.3) { // At least 30% of max chars
+                splitPos = lastSentence + sentenceMatch[sentenceMatch.length - 1].length;
+                return [text.slice(0, splitPos).trim(), text.slice(splitPos).trim()];
+            }
+        }
+
+        // If no sentence boundary, try to split at a word boundary (space)
+        let searchStart = Math.min(maxChars, text.length - 1);
+
+        // Look backwards from maxChars to find a space - search more aggressively
+        for (let i = searchStart; i > 0; i--) {
+            if (text[i] === ' ') {
+                // Make sure we're not splitting into a tiny word at the end
+                const firstPart = text.slice(0, i);
+                const secondPart = text.slice(i + 1);
+
+                // If the second part is just 1-2 characters, keep looking backward
+                if (secondPart.trim().length <= 2 && i > maxChars * 0.5) {
+                    continue;
+                }
+
+                return [firstPart.trim(), secondPart.trim()];
+            }
+        }
+
+        // Look forward from maxChars to find a space (if no good backward split)
+        for (let i = maxChars; i < text.length; i++) {
+            if (text[i] === ' ') {
+                return [text.slice(0, i).trim(), text.slice(i + 1).trim()];
+            }
+        }
+
+        // Last resort: split at maxChars (no good word boundary found)
+        return [text.slice(0, maxChars).trim(), text.slice(maxChars).trim()];
+    }
+}
+
+// Process subtitle line splitting
+function processSrtLineSplit(content, maxChars) {
+    const subtitles = parseSrtContent(content);
+    const newSubtitles = [];
+
+    subtitles.forEach(subtitle => {
+        const lines = subtitle.text.split('\n');
+        let needsSplitting = false;
+
+        // Check if any line exceeds the max character limit
+        for (const line of lines) {
+            if (line.length > maxChars) {
+                needsSplitting = true;
+                break;
+            }
+        }
+
+        if (!needsSplitting) {
+            // Keep subtitle as-is
+            newSubtitles.push(subtitle);
+        } else {
+            // Process each line and split if needed
+            const allLines = [];
+            for (const line of lines) {
+                if (line.length > maxChars) {
+                    const splitLines = splitSubtitleLine(line, maxChars);
+                    allLines.push(...splitLines);
+                } else {
+                    allLines.push(line);
+                }
+            }
+
+            // If we have multiple lines now, we might need to split into multiple subtitle entries
+            // For simplicity, we'll combine them back with newlines if they fit reasonably
+            const combinedText = allLines.join('\n');
+
+            // Calculate duration per character for time splitting
+            const duration = subtitle.endTime - subtitle.startTime;
+            const originalLength = subtitle.text.replace(/\n/g, ' ').length;
+            const timePerChar = duration / originalLength;
+
+            // If the combined text is reasonable, keep as one subtitle
+            // Otherwise, split into two separate subtitle entries
+            if (allLines.length <= 2) {
+                newSubtitles.push({
+                    startTime: subtitle.startTime,
+                    endTime: subtitle.endTime,
+                    text: combinedText
+                });
+            } else {
+                // Split into two subtitle entries at the middle time
+                const midpoint = allLines.length / 2;
+                const firstHalf = allLines.slice(0, Math.ceil(midpoint));
+                const secondHalf = allLines.slice(Math.ceil(midpoint));
+
+                const firstText = firstHalf.join(' ');
+                const secondText = secondHalf.join(' ');
+
+                // Calculate split time based on text length proportion
+                const firstLength = firstText.length;
+                const totalLength = firstText.length + secondText.length;
+                const splitTime = subtitle.startTime + (duration * (firstLength / totalLength));
+
+                newSubtitles.push({
+                    startTime: subtitle.startTime,
+                    endTime: splitTime,
+                    text: firstHalf.join('\n')
+                });
+
+                newSubtitles.push({
+                    startTime: splitTime,
+                    endTime: subtitle.endTime,
+                    text: secondHalf.join('\n')
+                });
+            }
+        }
+    });
+
+    // Generate SRT content
+    let result = '';
+    newSubtitles.forEach((subtitle, index) => {
+        result += `${index + 1}\n`;
+        result += `${formatSrtTimeFromSeconds(subtitle.startTime)} --> ${formatSrtTimeFromSeconds(subtitle.endTime)}\n`;
+        result += `${subtitle.text}\n\n`;
+    });
+
+    return result;
+}

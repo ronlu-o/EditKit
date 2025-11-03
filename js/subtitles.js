@@ -99,6 +99,12 @@ function openTool(toolType) {
         case 'lrcx-cleaner':
             setupLrcxCleanerModal(additionalOptions);
             break;
+        case 'srt-line-splitter':
+            setupLineSplitterModal(additionalOptions);
+            break;
+        case 'subtitle-text-extractor':
+            setupTextExtractorModal(additionalOptions);
+            break;
     }
 
     modal.classList.remove('hidden');
@@ -274,6 +280,116 @@ function setupLrcxCleanerModal(additionalOptions) {
                         <button id="exitManualInput" type="button" class="text-sm text-gray-400 hover:text-white">Back to file upload</button>
                     </div>
                     <textarea id="manualInputTextarea" rows="10" placeholder="Paste your .lrc or .lrcx file contents here" class="w-full p-3 bg-black border border-gray-700 rounded text-white placeholder-gray-500 focus:border-fcp-accent focus:outline-none"></textarea>
+                    <p class="text-xs text-gray-500">Your pasted text stays in this browser tab only.</p>
+                </div>
+            </div>
+        </div>
+    `;
+    additionalOptions.classList.remove('hidden');
+    initializeGenericManualInputControls();
+}
+
+// Setup line splitter modal options
+function setupLineSplitterModal(additionalOptions) {
+    const modalTitle = document.getElementById('modalTitle');
+    const fileTypes = document.getElementById('fileTypes');
+    const fileInput = document.getElementById('fileInput');
+
+    modalTitle.textContent = 'Split Long Subtitle Lines';
+    fileTypes.textContent = 'Supported: .srt files';
+    fileInput.accept = '.srt';
+
+    additionalOptions.innerHTML = `
+        <div class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-300 mb-2">Maximum Characters Per Line</label>
+                <input type="range" id="maxCharsPerLine" min="10" max="80" value="40" step="1"
+                       class="w-full h-2 bg-fcp-dark rounded-lg appearance-none cursor-pointer accent-fcp-accent">
+                <div class="flex justify-between text-sm text-gray-400 mt-1">
+                    <span>10</span>
+                    <span id="maxCharsDisplay" class="text-fcp-accent font-semibold">40</span>
+                    <span>80</span>
+                </div>
+                <p class="text-sm text-gray-400 mt-2">Lines longer than this will be split at word boundaries to improve readability.</p>
+            </div>
+            <div class="bg-fcp-dark p-3 rounded border border-gray-600">
+                <p class="text-xs text-gray-400">
+                    <strong class="text-gray-300">Smart splitting:</strong> For English, keeps complete words intact. For Chinese/Japanese/Korean, splits at punctuation marks (。！？，、) or at the character limit.
+                </p>
+            </div>
+            <div id="manualInputSection" class="space-y-4 border-t border-gray-600 pt-4">
+                <button id="toggleManualInput" type="button" class="w-full bg-fcp-accent text-white py-2 px-4 rounded hover:bg-blue-600 transition-colors">
+                    Paste SRT manually
+                </button>
+                <div id="manualInputContainer" class="hidden space-y-3 border border-gray-600 rounded-lg p-4 bg-fcp-dark">
+                    <div class="flex items-center justify-between">
+                        <label for="manualInputTextarea" class="text-sm font-medium text-gray-300">Manual SRT content</label>
+                        <button id="exitManualInput" type="button" class="text-sm text-gray-400 hover:text-white">Back to file upload</button>
+                    </div>
+                    <textarea id="manualInputTextarea" rows="10" placeholder="Paste your .srt file contents here" class="w-full p-3 bg-black border border-gray-700 rounded text-white placeholder-gray-500 focus:border-fcp-accent focus:outline-none"></textarea>
+                    <p class="text-xs text-gray-500">Your pasted text stays in this browser tab only.</p>
+                </div>
+            </div>
+        </div>
+    `;
+    additionalOptions.classList.remove('hidden');
+
+    // Setup slider update
+    const slider = document.getElementById('maxCharsPerLine');
+    const display = document.getElementById('maxCharsDisplay');
+    if (slider && display) {
+        slider.addEventListener('input', (e) => {
+            display.textContent = e.target.value;
+        });
+    }
+
+    initializeGenericManualInputControls();
+}
+
+// Setup text extractor modal options
+function setupTextExtractorModal(additionalOptions) {
+    const modalTitle = document.getElementById('modalTitle');
+    const fileTypes = document.getElementById('fileTypes');
+    const fileInput = document.getElementById('fileInput');
+
+    modalTitle.textContent = 'Extract Subtitle Text';
+    fileTypes.textContent = 'Supported: .srt, .vtt, .lrc files';
+    fileInput.accept = '.srt,.vtt,.lrc';
+
+    additionalOptions.innerHTML = `
+        <div class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-300 mb-3">Extraction Options</label>
+                <div class="grid grid-cols-1 gap-2 text-sm">
+                    <label class="flex items-center space-x-2 cursor-pointer">
+                        <input type="checkbox" id="includeTimestamps" class="rounded bg-fcp-dark border-gray-600 text-fcp-accent focus:ring-fcp-accent">
+                        <span class="text-gray-300">Include timestamps</span>
+                    </label>
+                    <label class="flex items-center space-x-2 cursor-pointer">
+                        <input type="checkbox" id="addLineNumbers" class="rounded bg-fcp-dark border-gray-600 text-fcp-accent focus:ring-fcp-accent">
+                        <span class="text-gray-300">Add line numbers</span>
+                    </label>
+                    <label class="flex items-center space-x-2 cursor-pointer">
+                        <input type="checkbox" id="addBlankLines" class="rounded bg-fcp-dark border-gray-600 text-fcp-accent focus:ring-fcp-accent">
+                        <span class="text-gray-300">Add blank lines between subtitles</span>
+                    </label>
+                </div>
+            </div>
+            <div class="bg-fcp-dark p-3 rounded border border-gray-600">
+                <p class="text-xs text-gray-400">
+                    Extract just the text from subtitle files for proofreading, script editing, or archiving dialogue.
+                </p>
+            </div>
+            <div id="manualInputSection" class="space-y-4 border-t border-gray-600 pt-4">
+                <button id="toggleManualInput" type="button" class="w-full bg-fcp-accent text-white py-2 px-4 rounded hover:bg-blue-600 transition-colors">
+                    Paste subtitle content manually
+                </button>
+                <div id="manualInputContainer" class="hidden space-y-3 border border-gray-600 rounded-lg p-4 bg-fcp-dark">
+                    <div class="flex items-center justify-between">
+                        <label for="manualInputTextarea" class="text-sm font-medium text-gray-300">Manual subtitle content</label>
+                        <button id="exitManualInput" type="button" class="text-sm text-gray-400 hover:text-white">Back to file upload</button>
+                    </div>
+                    <textarea id="manualInputTextarea" rows="10" placeholder="Paste your subtitle file contents here" class="w-full p-3 bg-black border border-gray-700 rounded text-white placeholder-gray-500 focus:border-fcp-accent focus:outline-none"></textarea>
                     <p class="text-xs text-gray-500">Your pasted text stays in this browser tab only.</p>
                 </div>
             </div>
@@ -495,7 +611,7 @@ function updateGenericProcessButtonState() {
 
 // Process file based on current tool
 function processFile() {
-    const manualInputTools = ['lrcx-to-srt', 'lrcx-cleaner', 'vtt-to-srt', 'srt-cleaner'];
+    const manualInputTools = ['lrcx-to-srt', 'lrcx-cleaner', 'vtt-to-srt', 'srt-cleaner', 'srt-line-splitter', 'subtitle-text-extractor'];
     const supportsManualInput = manualInputTools.includes(currentTool) && manualInputMode;
 
     if (!uploadedFile && currentTool !== 'srt-creator' && !supportsManualInput) {
@@ -557,6 +673,20 @@ function processFile() {
                 processLrcxCleanerText(manualInputContent);
             } else {
                 processLrcxCleaner(uploadedFile[0]);
+            }
+            break;
+        case 'srt-line-splitter':
+            if (manualInputMode) {
+                processSrtLineSplitterText(manualInputContent);
+            } else {
+                processSrtLineSplitter(uploadedFile[0]);
+            }
+            break;
+        case 'subtitle-text-extractor':
+            if (manualInputMode) {
+                processSubtitleTextExtractorText(manualInputContent);
+            } else {
+                processSubtitleTextExtractor(uploadedFile[0]);
             }
             break;
     }

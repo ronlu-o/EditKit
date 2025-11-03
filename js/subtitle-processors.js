@@ -341,3 +341,221 @@ function cleanLrcxContent(content) {
     // Remove any extra blank lines created by filtering
     return lines.join('\n').replace(/\n{3,}/g, '\n\n');
 }
+
+// Process SRT Line Splitter
+async function processSrtLineSplitter(file) {
+    const reader = new FileReader();
+    reader.onload = async function(e) {
+        try {
+            const content = e.target.result;
+            const maxChars = parseInt(document.getElementById('maxCharsPerLine')?.value || '40');
+            const splitContent = processSrtLineSplit(content, maxChars);
+            downloadFile(splitContent, file.name.replace(/\.[^/.]+$/, "_split.srt"), 'text/plain');
+            closeModal();
+        } catch (error) {
+            console.error('Processing error:', error);
+            alert('Error processing file: ' + error.message);
+            document.getElementById('processBtn').textContent = 'Process';
+            document.getElementById('processBtn').disabled = false;
+        }
+    };
+    reader.readAsText(file);
+}
+
+// Process SRT Line Splitter from manual text input
+async function processSrtLineSplitterText(content) {
+    try {
+        const maxChars = parseInt(document.getElementById('maxCharsPerLine')?.value || '40');
+        const splitContent = processSrtLineSplit(content, maxChars);
+        downloadFile(splitContent, 'manual_input_split.srt', 'text/plain');
+        closeModal();
+    } catch (error) {
+        console.error('Processing error:', error);
+        alert('Error processing text: ' + error.message);
+        const processBtn = document.getElementById('processBtn');
+        if (processBtn) {
+            processBtn.textContent = 'Process';
+            processBtn.disabled = false;
+        }
+    }
+}
+
+// Process Subtitle Text Extractor
+async function processSubtitleTextExtractor(file) {
+    const reader = new FileReader();
+    reader.onload = async function(e) {
+        try {
+            const content = e.target.result;
+            const includeTimestamps = document.getElementById('includeTimestamps')?.checked || false;
+            const addLineNumbers = document.getElementById('addLineNumbers')?.checked || false;
+            const addBlankLines = document.getElementById('addBlankLines')?.checked || false;
+
+            let extractedText = '';
+
+            // Try to parse as SRT first
+            try {
+                const subtitles = parseSrtContent(content);
+
+                subtitles.forEach((subtitle, index) => {
+                    let line = '';
+
+                    if (addLineNumbers) {
+                        line += `${index + 1}. `;
+                    }
+
+                    if (includeTimestamps) {
+                        line += `[${formatSrtTimeFromSeconds(subtitle.startTime)}] `;
+                    }
+
+                    line += subtitle.text;
+
+                    extractedText += line + '\n';
+
+                    if (addBlankLines) {
+                        extractedText += '\n';
+                    }
+                });
+            } catch (srtError) {
+                // If SRT parsing fails, try VTT format or just extract text lines
+                const lines = content.split('\n');
+                let isVtt = content.trim().startsWith('WEBVTT');
+
+                if (isVtt) {
+                    // Basic VTT parsing
+                    let inSubtitle = false;
+                    let lineNum = 1;
+
+                    for (let i = 0; i < lines.length; i++) {
+                        const line = lines[i].trim();
+
+                        if (line.includes('-->')) {
+                            inSubtitle = true;
+                            if (includeTimestamps) {
+                                const timestamp = line.split('-->')[0].trim();
+                                extractedText += `[${timestamp}] `;
+                            }
+                            if (addLineNumbers) {
+                                extractedText += `${lineNum}. `;
+                                lineNum++;
+                            }
+                        } else if (inSubtitle && line && !line.startsWith('NOTE')) {
+                            // Remove VTT formatting tags
+                            const cleanedLine = line.replace(/<[^>]*>/g, '');
+                            extractedText += cleanedLine + '\n';
+                            if (addBlankLines) {
+                                extractedText += '\n';
+                            }
+                            inSubtitle = false;
+                        }
+                    }
+                } else {
+                    // Generic text extraction - just remove timecode lines
+                    let lineNum = 1;
+                    for (let i = 0; i < lines.length; i++) {
+                        const line = lines[i].trim();
+
+                        // Skip empty lines, numbers, and timestamp lines
+                        if (!line || /^\d+$/.test(line) || line.includes('-->')) {
+                            continue;
+                        }
+
+                        let outputLine = '';
+                        if (addLineNumbers) {
+                            outputLine += `${lineNum}. `;
+                            lineNum++;
+                        }
+
+                        outputLine += line;
+                        extractedText += outputLine + '\n';
+
+                        if (addBlankLines) {
+                            extractedText += '\n';
+                        }
+                    }
+                }
+            }
+
+            downloadFile(extractedText, file.name.replace(/\.[^/.]+$/, ".txt"), 'text/plain');
+            closeModal();
+        } catch (error) {
+            console.error('Extraction error:', error);
+            alert('Error extracting text: ' + error.message);
+            document.getElementById('processBtn').textContent = 'Process';
+            document.getElementById('processBtn').disabled = false;
+        }
+    };
+    reader.readAsText(file);
+}
+
+// Process Subtitle Text Extractor from manual text input
+async function processSubtitleTextExtractorText(content) {
+    try {
+        const includeTimestamps = document.getElementById('includeTimestamps')?.checked || false;
+        const addLineNumbers = document.getElementById('addLineNumbers')?.checked || false;
+        const addBlankLines = document.getElementById('addBlankLines')?.checked || false;
+
+        let extractedText = '';
+
+        // Try to parse as SRT first
+        try {
+            const subtitles = parseSrtContent(content);
+
+            subtitles.forEach((subtitle, index) => {
+                let line = '';
+
+                if (addLineNumbers) {
+                    line += `${index + 1}. `;
+                }
+
+                if (includeTimestamps) {
+                    line += `[${formatSrtTimeFromSeconds(subtitle.startTime)}] `;
+                }
+
+                line += subtitle.text;
+
+                extractedText += line + '\n';
+
+                if (addBlankLines) {
+                    extractedText += '\n';
+                }
+            });
+        } catch (srtError) {
+            // If SRT parsing fails, use generic extraction
+            const lines = content.split('\n');
+            let lineNum = 1;
+
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i].trim();
+
+                // Skip empty lines, numbers, and timestamp lines
+                if (!line || /^\d+$/.test(line) || line.includes('-->')) {
+                    continue;
+                }
+
+                let outputLine = '';
+                if (addLineNumbers) {
+                    outputLine += `${lineNum}. `;
+                    lineNum++;
+                }
+
+                outputLine += line;
+                extractedText += outputLine + '\n';
+
+                if (addBlankLines) {
+                    extractedText += '\n';
+                }
+            }
+        }
+
+        downloadFile(extractedText, 'manual_input.txt', 'text/plain');
+        closeModal();
+    } catch (error) {
+        console.error('Extraction error:', error);
+        alert('Error extracting text: ' + error.message);
+        const processBtn = document.getElementById('processBtn');
+        if (processBtn) {
+            processBtn.textContent = 'Process';
+            processBtn.disabled = false;
+        }
+    }
+}
