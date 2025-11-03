@@ -1,0 +1,253 @@
+================================================================================
+SRT2FCPXML - USAGE DOCUMENTATION
+================================================================================
+
+Convert SRT subtitle files to Final Cut Pro XML format.
+
+--------------------------------------------------------------------------------
+BASIC USAGE
+--------------------------------------------------------------------------------
+
+python3 srt2fcpxml.py -srt <path_to_subtitle.srt>
+
+This will generate a .fcpxml file in the same directory as your SRT file.
+
+--------------------------------------------------------------------------------
+COMMAND LINE ARGUMENTS
+--------------------------------------------------------------------------------
+
+Required:
+---------
+
+-srt <path>
+    Path to the SRT subtitle file you want to convert.
+    Example: -srt /path/to/subtitle.srt
+
+
+Optional:
+---------
+
+-fd <framerate>
+    Frame rate of your video project.
+    Supported values: 23.98, 24, 25, 29.97, 30, 50, 59.94, 60
+    Default: 25
+
+    Examples:
+    -fd 23.98    Film/Cinema (23.976 fps)
+    -fd 24       Film standard
+    -fd 25       PAL standard
+    -fd 29.97    NTSC standard (drop-frame)
+    -fd 30       NTSC
+    -fd 50       PAL high frame rate
+    -fd 59.94    NTSC high frame rate (drop-frame)
+    -fd 60       High frame rate (YouTube, gaming)
+
+
+-width <pixels>
+    Video width in pixels.
+    Default: 1920
+
+    Common values:
+    1280  (720p)
+    1920  (1080p)
+    3840  (4K UHD)
+
+
+-height <pixels>
+    Video height in pixels.
+    Default: 1080
+
+    Common values:
+    720   (720p)
+    1080  (1080p)
+    2160  (4K UHD)
+
+
+-align <alignment>
+    Horizontal text alignment.
+    Options: left, center, right
+    Default: center
+
+    Effects:
+    left   - Aligns text to left, X position = -840.0
+    center - Centers text horizontally, X position = 0
+    right  - Aligns text to right, X position = 840.0
+
+
+-y <offset>
+    Vertical position offset for subtitles.
+    Negative values move text up, positive values move text down.
+    Default: -420
+
+    Examples:
+    -y -450    Move text higher
+    -y -420    Default position
+    -y -300    Move text lower but still above bottom
+    -y 0       Center vertically
+
+
+-project <name>
+    Name for the Final Cut Pro project.
+    Default: The SRT filename without extension
+
+    Example:
+    -project "Episode 01 - Pilot"
+
+
+-event <name>
+    Name for the Final Cut Pro event that contains the project.
+    Default: _fcpxmls
+
+    Example:
+    -event "Season 1 Subtitles"
+
+--------------------------------------------------------------------------------
+USAGE EXAMPLES
+--------------------------------------------------------------------------------
+
+Basic conversion with defaults:
+    python3 srt2fcpxml.py -srt subtitle.srt
+
+Convert with 60fps:
+    python3 srt2fcpxml.py -srt subtitle.srt -fd 60
+
+Left-aligned subtitles for dual-language videos:
+    python3 srt2fcpxml.py -srt english.srt -align left
+
+Right-aligned subtitles:
+    python3 srt2fcpxml.py -srt spanish.srt -align right
+
+4K 60fps project:
+    python3 srt2fcpxml.py -srt subtitle.srt -fd 60 -width 3840 -height 2160
+
+Custom project with all options:
+    python3 srt2fcpxml.py \
+        -srt subtitle.srt \
+        -fd 29.97 \
+        -width 1920 \
+        -height 1080 \
+        -align center \
+        -y -350 \
+        -project "My Movie" \
+        -event "Subtitles"
+
+YouTube video (1080p 60fps):
+    python3 srt2fcpxml.py -srt subtitle.srt -fd 60 -width 1920 -height 1080
+
+Film project (4K 24fps):
+    python3 srt2fcpxml.py -srt subtitle.srt -fd 24 -width 3840 -height 2160
+
+Broadcast PAL (1080p 25fps):
+    python3 srt2fcpxml.py -srt subtitle.srt -fd 25
+
+Broadcast NTSC (1080p 29.97fps):
+    python3 srt2fcpxml.py -srt subtitle.srt -fd 29.97
+
+--------------------------------------------------------------------------------
+OUTPUT
+--------------------------------------------------------------------------------
+
+The script generates a .fcpxml file with the same base name as your SRT file
+(or the name specified with -project).
+
+Output location: Same directory as the input SRT file
+
+Example:
+    Input:  /Users/you/Videos/movie.srt
+    Output: /Users/you/Videos/movie.fcpxml
+
+With custom project name:
+    Input:  /Users/you/Videos/movie.srt -project "Final"
+    Output: /Users/you/Videos/Final.fcpxml
+
+--------------------------------------------------------------------------------
+IMPORTING INTO FINAL CUT PRO
+--------------------------------------------------------------------------------
+
+1. Open Final Cut Pro X
+2. Go to File → Import → XML
+3. Select the generated .fcpxml file
+4. The subtitle project will appear in your library under the specified event
+
+The imported project contains:
+- All subtitle text positioned at specified alignment and Y offset
+- Proper timing matching your SRT file
+- Text styled with PingFang SC font, 72pt
+- Ready to overlay on your video timeline
+
+--------------------------------------------------------------------------------
+SRT FILE FORMAT REQUIREMENTS
+--------------------------------------------------------------------------------
+
+Your SRT file must follow standard SRT format:
+
+1
+00:00:01,000 --> 00:00:03,000
+First subtitle text
+
+2
+00:00:05,500 --> 00:00:08,000
+Second subtitle
+with multiple lines
+
+3
+00:00:10,000 --> 00:00:12,500
+Third subtitle
+
+Requirements:
+- Sequential numbering (1, 2, 3...)
+- Timing format: HH:MM:SS,mmm --> HH:MM:SS,mmm
+- Blank line between entries
+- UTF-8 encoding recommended for international characters
+
+--------------------------------------------------------------------------------
+TROUBLESHOOTING
+--------------------------------------------------------------------------------
+
+"No valid subtitles found in SRT file"
+    - Check SRT format is correct
+    - Ensure timing lines use commas, not periods (00:00:01,000 not 00:00:01.000)
+    - Verify file encoding is UTF-8
+
+"Error: SRT file not found"
+    - Check the file path is correct
+    - Use absolute paths if relative paths don't work
+    - Ensure file has .srt extension
+
+Python version error
+    - Requires Python 3.7 or higher
+    - Check version: python3 --version
+
+Frame rate not supported
+    - Use only supported frame rates: 23.98, 24, 25, 29.97, 30, 50, 59.94, 60
+
+--------------------------------------------------------------------------------
+TECHNICAL DETAILS
+--------------------------------------------------------------------------------
+
+Dependencies: None (pure Python, standard library only)
+Python version: 3.7+
+Platforms: macOS, Linux, Windows
+FCPXML version: 1.7
+Compatible with: Final Cut Pro X 10.4.6+
+
+The script uses:
+- Pure Python SRT parser (regex-based)
+- XML ElementTree for FCPXML generation
+- Frame rate calculations matching Go implementation
+- DTD-compliant XML structure
+
+Position coordinates:
+- X: -840.0 (left), 0 (center), 840.0 (right)
+- Y: Default -420 (adjustable via -y parameter)
+
+Text styling:
+- Font: PingFang SC
+- Size: 72pt
+- Color: White (1 1 1 1)
+- Face: Regular
+- Alignment: Specified via -align parameter
+
+--------------------------------------------------------------------------------
+END OF DOCUMENTATION
+================================================================================

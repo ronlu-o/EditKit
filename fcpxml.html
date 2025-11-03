@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SRT to FCPXML - EditKit</title>
+    <link rel="apple-touch-icon" sizes="180x180" href="favicon_io/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon_io/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="favicon_io/favicon-16x16.png">
+    <link rel="manifest" href="favicon_io/site.webmanifest">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/pyodide/v0.25.0/full/pyodide.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'fcp-dark': '#1C1C1E',
+                        'fcp-gray': '#2A2A2D',
+                        'fcp-border': '#3A3A3E',
+                        'fcp-text': '#F2F2F7',
+                        'fcp-text-secondary': '#A1A1AA',
+                        'fcp-accent': '#0A84FF',
+                        'fcp-success': '#30D158',
+                        'fcp-destructive': '#FF453A',
+                    },
+                    fontFamily: {
+                        'sans': ['Poppins', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-fcp-dark text-fcp-text font-sans">
+    <!-- Navigation -->
+    <nav class="bg-fcp-gray border-b border-fcp-border">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center">
+                    <a href="index.html" class="flex items-center space-x-3 group transition-transform hover:scale-105">
+                        <img src="logo.png" alt="EditKit" class="h-10 w-10 transition-transform group-hover:rotate-3">
+                        <span class="text-xl font-semibold tracking-tight group-hover:text-opacity-80 transition-colors">
+                            <span class="text-fcp-text">Edit</span><span class="text-blue-400">Kit</span>
+                        </span>
+                    </a>
+                </div>
+                <div class="hidden md:block">
+                    <div class="ml-10 flex items-baseline space-x-4">
+                        <a href="index.html" class="px-3 py-2 rounded-md text-sm font-medium text-gray-300 hover:text-white hover:bg-gray-700 transition-colors">Home</a>
+                        <a href="lut-previewer.html" class="px-3 py-2 rounded-md text-sm font-medium text-gray-300 hover:text-white hover:bg-gray-700 transition-colors">LUT Previewer</a>
+                        <a href="subtitles.html" class="px-3 py-2 rounded-md text-sm font-medium text-gray-300 hover:text-white hover:bg-gray-700 transition-colors">Subtitles</a>
+                        <a href="fcpxml.html" class="px-3 py-2 rounded-md text-sm font-medium text-white bg-gray-700">FCPXML</a>
+                        <a href="blog.html" class="px-3 py-2 rounded-md text-sm font-medium text-gray-300 hover:text-white hover:bg-gray-700 transition-colors">Blog</a>
+                        <a href="about.html" class="px-3 py-2 rounded-md text-sm font-medium text-gray-300 hover:text-white hover:bg-gray-700 transition-colors">About</a>
+                    </div>
+                </div>
+                <!-- Mobile menu button -->
+                <div class="md:hidden">
+                    <button id="mobile-menu-button" class="bg-gray-800 inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-white hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-white">
+                        <svg class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <!-- Mobile menu -->
+        <div id="mobile-menu" class="md:hidden hidden">
+            <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-gray-800">
+                <a href="index.html" class="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-white hover:bg-gray-700">Home</a>
+                <a href="lut-previewer.html" class="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-white hover:bg-gray-700">LUT Previewer</a>
+                <a href="subtitles.html" class="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-white hover:bg-gray-700">Subtitles</a>
+                <a href="fcpxml.html" class="block px-3 py-2 rounded-md text-base font-medium text-white bg-gray-700">FCPXML</a>
+                <a href="blog.html" class="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-white hover:bg-gray-700">Blog</a>
+                <a href="about.html" class="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-white hover:bg-gray-700">About</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-5xl mx-auto py-6 sm:px-6 lg:px-8">
+        <!-- Header -->
+        <div class="text-center py-12">
+            <h1 class="text-4xl font-bold text-white mb-4">SRT to FCPXML Converter</h1>
+            <p class="text-xl text-gray-400 max-w-3xl mx-auto">Convert subtitle files to Final Cut Pro XML format files with titles. </p>
+            <p class="text-l text-gray-400 max-w-2xl mx-auto">(For creating embedded subtitles from softcoded subtitles)</p>
+        </div>
+
+        <div class="bg-fcp-gray p-8 rounded-lg border border-fcp-border">
+            <!-- Upload Area -->
+            <div id="uploadArea" class="border-2 border-dashed border-gray-600 rounded-lg p-8 text-center hover:border-fcp-accent transition-colors cursor-pointer mb-6">
+                <svg class="w-12 h-12 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                </svg>
+                <p class="text-gray-400 mb-2">Drop your .srt file here or click to browse</p>
+                <p class="text-sm text-gray-500">Supported: .srt files</p>
+                <input type="file" id="fileInput" class="hidden" accept=".srt">
+                <p class="file-name text-fcp-accent font-medium mt-2" id="fileName"></p>
+            </div>
+
+            <!-- Manual Input Section -->
+            <div class="mb-6">
+                <button id="toggleManualInput" type="button" class="w-full bg-fcp-accent text-white py-2 px-4 rounded hover:bg-blue-600 transition-colors">
+                    Paste SRT manually
+                </button>
+                <div id="manualInputContainer" class="hidden mt-4 space-y-3 border border-gray-600 rounded-lg p-4 bg-fcp-dark">
+                    <div class="flex items-center justify-between">
+                        <label for="manualInputTextarea" class="text-sm font-medium text-gray-300">Manual SRT content</label>
+                        <button id="exitManualInput" type="button" class="text-sm text-gray-400 hover:text-white">Back to file upload</button>
+                    </div>
+                    <textarea id="manualInputTextarea" rows="10" placeholder="Paste your .srt file contents here" class="w-full p-3 bg-black border border-gray-700 rounded text-white placeholder-gray-500 focus:border-fcp-accent focus:outline-none"></textarea>
+                    <p class="text-xs text-gray-500">Your pasted text stays in this browser tab only.</p>
+                </div>
+            </div>
+
+            <!-- Settings Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <div>
+                    <label for="frameRate" class="block text-sm font-medium text-gray-300 mb-2">Frame Rate</label>
+                    <select id="frameRate" class="w-full p-3 bg-fcp-dark border border-gray-600 rounded text-white focus:border-fcp-accent focus:outline-none">
+                        <option value="23.98">23.98 fps (Film)</option>
+                        <option value="24">24 fps (Film)</option>
+                        <option value="25">25 fps (PAL)</option>
+                        <option value="29.97">29.97 fps (NTSC)</option>
+                        <option value="30">30 fps (NTSC)</option>
+                        <option value="50">50 fps (PAL HFR)</option>
+                        <option value="59.94">59.94 fps (NTSC HFR)</option>
+                        <option value="60" selected>60 fps (HFR)</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label for="alignment" class="block text-sm font-medium text-gray-300 mb-2">Text Alignment</label>
+                    <select id="alignment" class="w-full p-3 bg-fcp-dark border border-gray-600 rounded text-white focus:border-fcp-accent focus:outline-none">
+                        <option value="left">Left</option>
+                        <option value="center" selected>Center</option>
+                        <option value="right">Right</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label for="resolution" class="block text-sm font-medium text-gray-300 mb-2">Resolution</label>
+                    <select id="resolution" class="w-full p-3 bg-fcp-dark border border-gray-600 rounded text-white focus:border-fcp-accent focus:outline-none">
+                        <option value="1280x720">720p (1280×720)</option>
+                        <option value="1920x1080" selected>1080p (1920×1080)</option>
+                        <option value="3840x2160">4K (3840×2160)</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label for="yPosition" class="block text-sm font-medium text-gray-300 mb-2">Y Position</label>
+                    <input type="number" id="yPosition" value="-420" class="w-full p-3 bg-fcp-dark border border-gray-600 rounded text-white focus:border-fcp-accent focus:outline-none">
+                </div>
+
+                <div>
+                    <label for="projectName" class="block text-sm font-medium text-gray-300 mb-2">Project Name (Optional)</label>
+                    <input type="text" id="projectName" placeholder="Auto from filename" class="w-full p-3 bg-fcp-dark border border-gray-600 rounded text-white placeholder-gray-500 focus:border-fcp-accent focus:outline-none">
+                </div>
+
+                <div>
+                    <label for="eventName" class="block text-sm font-medium text-gray-300 mb-2">Event Name</label>
+                    <input type="text" id="eventName" value="_FCPXMLs" class="w-full p-3 bg-fcp-dark border border-gray-600 rounded text-white focus:border-fcp-accent focus:outline-none">
+                </div>
+            </div>
+
+            <!-- Convert Button -->
+            <button id="convertBtn" onclick="convertFile()" disabled class="w-full px-6 py-3 bg-fcp-accent text-white rounded hover:bg-opacity-80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium">
+                Convert to FCPXML
+            </button>
+
+            <!-- Status Message -->
+            <div id="status" class="mt-4 p-4 rounded hidden"></div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-fcp-gray border-t border-fcp-border mt-8">
+        <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+            <div class="text-center">
+                <p class="text-fcp-text-secondary text-sm mb-2">
+                    © 2025 EditKit. Streamlined workflow utilities for video editors.
+                </p>
+                <a href="https://github.com/ronlu-o/EditKit" target="_blank" rel="noopener noreferrer"
+                   class="inline-flex items-center gap-2 text-fcp-text-secondary hover:text-fcp-accent transition-colors">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                        <path fill-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clip-rule="evenodd"/>
+                    </svg>
+                    <span class="text-sm">View on GitHub</span>
+                </a>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/main.js"></script>
+    <script>
+        let pyodide = null;
+        let selectedFile = null;
+        let pythonScriptLoaded = false;
+        let manualInputMode = false;
+        let manualInputContent = '';
+
+        // Initialize Pyodide on page load
+        async function initPyodide() {
+            showStatus('Loading Python environment...', 'info');
+            try {
+                pyodide = await loadPyodide();
+
+                // Load the Python script
+                const response = await fetch('fcpxml/srt2fcpxml.py');
+                if (!response.ok) {
+                    throw new Error('Failed to load srt2fcpxml.py');
+                }
+                const scriptContent = await response.text();
+                pyodide.FS.writeFile('/srt2fcpxml.py', scriptContent);
+                pythonScriptLoaded = true;
+
+                showStatus('Ready! Select an SRT file to convert.', 'success');
+            } catch (error) {
+                showStatus('Error loading Python: ' + error.message, 'error');
+            }
+        }
+
+        // File upload handling
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const convertBtn = document.getElementById('convertBtn');
+        const fileNameDisplay = document.getElementById('fileName');
+
+        uploadArea.addEventListener('click', () => fileInput.click());
+
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('border-fcp-accent');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('border-fcp-accent');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('border-fcp-accent');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFile(files[0]);
+            }
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleFile(e.target.files[0]);
+            }
+        });
+
+        function handleFile(file) {
+            if (!file.name.endsWith('.srt')) {
+                showStatus('Please select a .srt file', 'error');
+                return;
+            }
+            selectedFile = file;
+            fileNameDisplay.textContent = file.name;
+            convertBtn.disabled = false;
+        }
+
+        // Manual input handling
+        const toggleManualInputBtn = document.getElementById('toggleManualInput');
+        const exitManualInputBtn = document.getElementById('exitManualInput');
+        const manualInputContainer = document.getElementById('manualInputContainer');
+        const manualInputTextarea = document.getElementById('manualInputTextarea');
+
+        toggleManualInputBtn.addEventListener('click', () => {
+            manualInputMode = true;
+            manualInputContainer.classList.remove('hidden');
+            uploadArea.classList.add('opacity-50', 'pointer-events-none');
+            uploadArea.setAttribute('aria-disabled', 'true');
+            selectedFile = null;
+            fileNameDisplay.textContent = '';
+            manualInputTextarea.focus();
+            updateConvertButtonState();
+        });
+
+        exitManualInputBtn.addEventListener('click', () => {
+            manualInputMode = false;
+            manualInputContent = '';
+            manualInputTextarea.value = '';
+            manualInputContainer.classList.add('hidden');
+            uploadArea.classList.remove('opacity-50', 'pointer-events-none');
+            uploadArea.removeAttribute('aria-disabled');
+            updateConvertButtonState();
+        });
+
+        manualInputTextarea.addEventListener('input', (e) => {
+            manualInputContent = e.target.value;
+            updateConvertButtonState();
+        });
+
+        function updateConvertButtonState() {
+            if (manualInputMode) {
+                convertBtn.disabled = manualInputContent.trim().length === 0;
+            } else {
+                convertBtn.disabled = !selectedFile;
+            }
+        }
+
+        async function convertFile() {
+            if (!pythonScriptLoaded) {
+                showStatus('Please wait for the Python environment to load', 'error');
+                return;
+            }
+
+            if (!manualInputMode && !selectedFile) {
+                showStatus('Please select a file or paste SRT content', 'error');
+                return;
+            }
+
+            if (manualInputMode && !manualInputContent.trim()) {
+                showStatus('Please paste SRT content', 'error');
+                return;
+            }
+
+            convertBtn.disabled = true;
+            showStatus('Converting...', 'info');
+
+            try {
+                // Get SRT content from file or manual input
+                const srtContent = manualInputMode ? manualInputContent : await selectedFile.text();
+
+                // Write to virtual filesystem
+                pyodide.FS.writeFile('/input.srt', srtContent);
+
+                // Get parameters
+                const frameRate = document.getElementById('frameRate').value;
+                const alignment = document.getElementById('alignment').value;
+                const resolution = document.getElementById('resolution').value;
+                const [width, height] = resolution.split('x');
+                const yPosition = document.getElementById('yPosition').value;
+                const projectName = document.getElementById('projectName').value;
+                const eventName = document.getElementById('eventName').value;
+
+                // Build arguments
+                let args = [
+                    'srt2fcpxml.py',
+                    '-srt', '/input.srt',
+                    '-fd', frameRate,
+                    '-align', alignment,
+                    '-width', width,
+                    '-height', height,
+                    '-y', yPosition,
+                    '-event', eventName
+                ];
+
+                // Add project name if specified
+                if (projectName.trim()) {
+                    args.push('-project', projectName);
+                }
+
+                // Run Python script
+                await pyodide.runPythonAsync(`
+import sys
+sys.argv = ${JSON.stringify(args)}
+
+# Execute the script
+exec(open('/srt2fcpxml.py').read())
+                `);
+
+                // Read the output
+                const fcpxmlContent = pyodide.FS.readFile('/input.fcpxml', {encoding: 'utf8'});
+
+                // Download the result
+                const blob = new Blob([fcpxmlContent], {type: 'application/xml'});
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+
+                // Use custom project name, file name, or default
+                let downloadName;
+                if (projectName.trim()) {
+                    downloadName = projectName.trim() + '.fcpxml';
+                } else if (manualInputMode) {
+                    downloadName = 'manual_input.fcpxml';
+                } else {
+                    downloadName = selectedFile.name.replace('.srt', '.fcpxml');
+                }
+                a.download = downloadName;
+
+                a.click();
+                URL.revokeObjectURL(url);
+
+                showStatus('Conversion successful! File downloaded.', 'success');
+            } catch (error) {
+                showStatus('Error during conversion: ' + error.message, 'error');
+                console.error(error);
+            } finally {
+                convertBtn.disabled = false;
+            }
+        }
+
+        function showStatus(message, type) {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = 'mt-4 p-4 rounded ' + type;
+
+            if (type === 'info') {
+                status.classList.add('bg-blue-900', 'bg-opacity-20', 'text-fcp-accent', 'border', 'border-fcp-accent');
+            } else if (type === 'success') {
+                status.classList.add('bg-green-900', 'bg-opacity-20', 'text-fcp-success', 'border', 'border-fcp-success');
+            } else if (type === 'error') {
+                status.classList.add('bg-red-900', 'bg-opacity-20', 'text-fcp-destructive', 'border', 'border-fcp-destructive');
+            }
+
+            status.classList.remove('hidden');
+        }
+
+        // Initialize on page load
+        initPyodide();
+    </script>
+</body>
+</html>
