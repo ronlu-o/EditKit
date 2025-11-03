@@ -19,6 +19,7 @@ EditKit solves common file and preparation tasks without ever leaving your machi
 Utilities that streamline other content creators' video workflow.
 
 * **Subtitle Converters:** Convert, merge, sync, and clean subtitle files (SRT, VTT, LRCX, etc.).
+* **SRT to FCPXML:** Convert subtitle files to Final Cut Pro XML format with customizable settings.
 * **LUT Previewer:** Instantly test `.cube` LUT files on your images before applying them in your main editor.
 
 ## Why I Built This
@@ -37,3 +38,7 @@ EditKit is built entirely from static assets, making it fast and easy to host:
 ## Contributing
 
 Contributions are always welcomed! If you found a bug or have a great feature idea, please [open an issue here](https://github.com/ronlu-o/EditKit/issues) or submit a pull request.
+
+## Credits & Acknowledgments
+
+* **SRT to FCPXML converter** is based on [srt2fcpxml](https://github.com/GanymedeNil/srt2fcpxml) by GanymedeNil, ported to Python with browser compatibility and additional features.

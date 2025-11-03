@@ -3,6 +3,11 @@
 srt2fcpxml - Convert SRT subtitle files to Final Cut Pro XML format
 Python implementation compatible with Pyodide (browser execution)
 Uses only pure Python - no C dependencies
+
+Based on the original Go implementation by GanymedeNil:
+https://github.com/GanymedeNil/srt2fcpxml
+
+Python port with additional features and browser compatibility.
 """
 
 import argparse
