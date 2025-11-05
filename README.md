@@ -39,6 +39,8 @@ EditKit is built entirely from static assets, making it fast and easy to host:
 
 Contributions are always welcomed! If you found a bug or have a great feature idea, please [open an issue here](https://github.com/ronlu-o/EditKit/issues) or submit a pull request.
 
+[!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/ronapps)
+
 ## Credits & Acknowledgments
 
 * **SRT to FCPXML converter** is based on [srt2fcpxml](https://github.com/GanymedeNil/srt2fcpxml) by GanymedeNil, ported to Python with browser compatibility and additional features.
