@@ -74,6 +74,14 @@ function loadBlogPosts() {
             </article>
         `).join('');
 
+        // Trigger animations now that posts are in the DOM
+        if (typeof window.initBlogAnimations === 'function') {
+            // Small delay to ensure DOM is painted
+            setTimeout(() => {
+                window.initBlogAnimations();
+            }, 50);
+        }
+
     } catch (error) {
         console.error('Error loading blog posts:', error);
         postsContainer.innerHTML = `

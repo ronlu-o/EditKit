@@ -3,6 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>EditKit - Professional Video Editing Tools</title>
     <link rel="apple-touch-icon" sizes="180x180" href="favicon_io/apple-touch-icon.png">
     <link rel="icon" type="image/png" sizes="32x32" href="favicon_io/favicon-32x32.png">
@@ -11,7 +14,10 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/page-transitions.css">
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Motion One for smooth animations -->
+    <script src="https://cdn.jsdelivr.net/npm/motion@11.11.13/dist/motion.js"></script>
     <script>
         tailwind.config = {
             theme: {
@@ -49,12 +55,12 @@
                 </div>
                 <div class="hidden md:block">
                     <div class="ml-10 flex items-baseline space-x-4">
-                        <a href="#home" class="px-3 py-2 rounded-md text-sm font-medium text-fcp-text-secondary hover:text-fcp-text hover:bg-fcp-border transition-colors">Home</a>
-                        <a href="lut-previewer.html" class="px-3 py-2 rounded-md text-sm font-medium text-fcp-text-secondary hover:text-fcp-text hover:bg-fcp-border transition-colors">LUT Previewer</a>
-                        <a href="subtitles.html" class="px-3 py-2 rounded-md text-sm font-medium text-fcp-text-secondary hover:text-fcp-text hover:bg-fcp-border transition-colors">Subtitles</a>
-                        <a href="fcpxml.html" class="px-3 py-2 rounded-md text-sm font-medium text-fcp-text-secondary hover:text-fcp-text hover:bg-fcp-border transition-colors">FCPXML</a>
-                        <a href="blog.html" class="px-3 py-2 rounded-md text-sm font-medium text-fcp-text-secondary hover:text-fcp-text hover:bg-fcp-border transition-colors">Blog</a>
-                        <a href="about.html" class="px-3 py-2 rounded-md text-sm font-medium text-fcp-text-secondary hover:text-fcp-text hover:bg-fcp-border transition-colors">About</a>
+                        <a href="#home" class="px-3 py-2 rounded-md text-sm font-medium text-fcp-text-secondary hover:text-fcp-text hover:bg-fcp-border transition-all hover:scale-105">Home</a>
+                        <a href="lut-previewer.html" class="px-3 py-2 rounded-md text-sm font-medium text-fcp-text-secondary hover:text-fcp-text hover:bg-fcp-border transition-all hover:scale-105">LUT Previewer</a>
+                        <a href="subtitles.html" class="px-3 py-2 rounded-md text-sm font-medium text-fcp-text-secondary hover:text-fcp-text hover:bg-fcp-border transition-all hover:scale-105">Subtitles</a>
+                        <a href="fcpxml.html" class="px-3 py-2 rounded-md text-sm font-medium text-fcp-text-secondary hover:text-fcp-text hover:bg-fcp-border transition-all hover:scale-105">FCPXML</a>
+                        <a href="blog.html" class="px-3 py-2 rounded-md text-sm font-medium text-fcp-text-secondary hover:text-fcp-text hover:bg-fcp-border transition-all hover:scale-105">Blog</a>
+                        <a href="about.html" class="px-3 py-2 rounded-md text-sm font-medium text-fcp-text-secondary hover:text-fcp-text hover:bg-fcp-border transition-all hover:scale-105">About</a>
                     </div>
                 </div>
                 <!-- Mobile menu button -->
@@ -143,5 +149,6 @@
     </footer>
 
     <script src="js/main.js"></script>
+    <script src="js/animations.js"></script>
 </body>
 </html>
