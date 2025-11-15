@@ -1,226 +1,110 @@
 /**
  * Motion One Animations for Subtitle Tools Page
- * Handles modal transitions, file drop animations, and processing feedback
+ * Handles modal transitions, file drop animations, and processing feedback.
+ * Entrance animations are managed by the View Transition API.
  */
 
-const { animate, stagger, inView } = Motion;
+const { animate } = Motion;
 
 let processingAnimation = null;
 
 /**
- * Initialize subtitle page animations
+ * Initialize subtitle page's interactive animations.
  */
 function initSubtitleAnimations() {
-    initPageLoadAnimations();
-    initToolCardAnimations();
     initFileDropZoneAnimations();
     initHoverEffects();
     overrideModalFunctions();
 }
 
 /**
- * Page load animations
- */
-function initPageLoadAnimations() {
-    // Animate header - subtle fade only, no movement to avoid layout shift
-    const header = document.querySelector('.text-center.py-12');
-    if (header) {
-        const title = header.querySelector('h1');
-        const subtitle = header.querySelector('p');
-
-        if (title) {
-            animate(
-                title,
-                { opacity: [0.7, 1] },
-                { duration: 0.5, easing: 'ease-out' }
-            );
-        }
-
-        if (subtitle) {
-            animate(
-                subtitle,
-                { opacity: [0.7, 1] },
-                { duration: 0.5, delay: 0.1, easing: 'ease-out' }
-            );
-        }
-    }
-}
-
-/**
- * Tool cards staggered entrance
- */
-function initToolCardAnimations() {
-    const cards = document.querySelectorAll('.grid > div[onclick]');
-    if (cards.length === 0) return;
-
-    // Subtle fade-in only, no movement to avoid layout shift
-    animate(
-        cards,
-        { opacity: [0.8, 1] },
-        {
-            duration: 0.4,
-            delay: stagger(0.03, { start: 0.2 }),
-            easing: 'ease-out'
-        }
-    );
-}
-
-/**
- * Tool card hover effects
+ * Adds hover effects to the tool cards.
  */
 function initHoverEffects() {
     const cards = document.querySelectorAll('.grid > div[onclick]');
-
     cards.forEach(card => {
         const icon = card.querySelector('.bg-fcp-accent');
-
         card.addEventListener('mouseenter', () => {
-            animate(card, { scale: 1.03 }, { duration: 0.15, easing: 'ease-out' });
-            if (icon) {
-                animate(icon, { rotate: 5 }, { duration: 0.15 });
-            }
+            animate(card, { opacity: 0.9 }, { duration: 0.15, easing: 'ease-out' });
+            if (icon) animate(icon, { rotate: 5 }, { duration: 0.15 });
         });
-
         card.addEventListener('mouseleave', () => {
-            animate(card, { scale: 1 }, { duration: 0.15, easing: 'ease-out' });
-            if (icon) {
-                animate(icon, { rotate: 0 }, { duration: 0.15 });
-            }
+            animate(card, { opacity: 1 }, { duration: 0.15, easing: 'ease-out' });
+            if (icon) animate(icon, { rotate: 0 }, { duration: 0.15 });
         });
     });
 }
 
 /**
- * File drop zone animations
+ * Provides visual feedback when a file is dragged over the upload area.
  */
 function initFileDropZoneAnimations() {
     const uploadArea = document.getElementById('uploadArea');
     if (!uploadArea) return;
 
-    // Dragover effect
     uploadArea.addEventListener('dragover', (e) => {
         e.preventDefault();
-        animate(
-            uploadArea,
-            { scale: 1.05, borderColor: '#0A84FF' },
-            { duration: 0.2 }
-        );
+        animate(uploadArea, { borderColor: '#0A84FF' }, { duration: 0.2 });
     });
 
-    // Dragleave effect
     uploadArea.addEventListener('dragleave', () => {
-        animate(
-            uploadArea,
-            { scale: 1, borderColor: '#4B5563' },
-            { duration: 0.2 }
-        );
+        animate(uploadArea, { borderColor: '#4B5563' }, { duration: 0.2 });
     });
 
-    // Drop effect
     uploadArea.addEventListener('drop', (e) => {
         e.preventDefault();
-
-        // Success pulse animation
-        animate(
-            uploadArea,
-            {
-                scale: [1.05, 1],
-                borderColor: ['#30D158', '#4B5563']
-            },
-            { duration: 0.4, easing: 'ease-out' }
-        );
+        animate(uploadArea, {
+            opacity: [1, 0.8, 1],
+            borderColor: ['#30D158', '#4B5563']
+        }, { duration: 0.4, easing: 'ease-out' });
     });
 }
 
 /**
- * Override modal open/close functions with animations
+ * Overrides the default modal functions to add open/close animations.
  */
 function overrideModalFunctions() {
-    // Store original functions
     window._originalOpenModal = window.openTool;
     window._originalCloseModal = window.closeModal;
 
-    // Override openTool function
     window.openTool = function(toolType) {
-        // Call original function first
-        if (window._originalOpenModal) {
-            window._originalOpenModal(toolType);
-        }
+        if (window._originalOpenModal) window._originalOpenModal(toolType);
 
-        // Animate modal entrance
         const modal = document.getElementById('uploadModal');
-        const modalContent = modal.querySelector('.bg-fcp-gray');
-
+        const modalContent = modal?.querySelector('.bg-fcp-gray');
         if (modal && modalContent) {
-            // Remove hidden class
             modal.classList.remove('hidden');
-
-            // Animate backdrop
-            animate(
-                modal,
-                { opacity: [0, 1] },
-                { duration: 0.2 }
-            );
-
-            // Animate modal content with bounce
-            animate(
-                modalContent,
-                {
-                    scale: [0.8, 1.05, 1],
-                    y: [30, -5, 0],
-                    opacity: [0, 1]
-                },
-                { duration: 0.4, easing: [0.34, 1.56, 0.64, 1] }
-            );
+            animate(modal, { opacity: [0, 1] }, { duration: 0.2 });
+            animate(modalContent, { y: [30, 0], opacity: [0, 1] }, { duration: 0.3, easing: 'ease-out' });
         }
     };
 
-    // Override closeModal function
     window.closeModal = function() {
         const modal = document.getElementById('uploadModal');
-        const modalContent = modal.querySelector('.bg-fcp-gray');
-
+        const modalContent = modal?.querySelector('.bg-fcp-gray');
         if (modal && modalContent) {
-            // Animate exit
             const animations = [
-                animate(
-                    modal,
-                    { opacity: [1, 0] },
-                    { duration: 0.2, delay: 0.1 }
-                ),
-                animate(
-                    modalContent,
-                    { scale: [1, 0.9], y: [0, 20], opacity: [1, 0] },
-                    { duration: 0.2 }
-                )
+                animate(modal, { opacity: [1, 0] }, { duration: 0.2, delay: 0.1 }),
+                animate(modalContent, { y: [0, 20], opacity: [1, 0] }, { duration: 0.2 })
             ];
-
             Promise.all(animations.map(a => a.finished)).then(() => {
-                // Call original close function after animation
-                if (window._originalCloseModal) {
-                    window._originalCloseModal();
-                }
+                if (window._originalCloseModal) window._originalCloseModal();
                 modal.classList.add('hidden');
             });
-        } else {
-            // Fallback if elements not found
-            if (window._originalCloseModal) {
-                window._originalCloseModal();
-            }
+        } else if (window._originalCloseModal) {
+            window._originalCloseModal();
         }
     };
 }
 
 /**
- * Show processing animation on process button
+ * Shows a processing spinner and animation on the process button.
  */
 function showProcessingAnimation() {
     const processBtn = document.getElementById('processBtn');
     if (!processBtn) return;
 
     const originalText = processBtn.innerHTML;
-
-    // Create spinner element
     processBtn.innerHTML = `
         <div class="flex items-center justify-center space-x-2">
             <svg class="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -231,18 +115,12 @@ function showProcessingAnimation() {
         </div>
     `;
 
-    // Pulse animation
-    processingAnimation = animate(
-        processBtn,
-        { scale: [1, 1.05, 1] },
-        { duration: 1, repeat: Infinity, easing: 'ease-in-out' }
-    );
-
+    processingAnimation = animate(processBtn, { opacity: [1, 0.8, 1] }, { duration: 1, repeat: Infinity, easing: 'ease-in-out' });
     return originalText;
 }
 
 /**
- * Hide processing animation
+ * Hides the processing animation and restores the button's original text.
  */
 function hideProcessingAnimation(originalText = 'Process') {
     const processBtn = document.getElementById('processBtn');
@@ -252,77 +130,60 @@ function hideProcessingAnimation(originalText = 'Process') {
         processingAnimation.stop();
         processingAnimation = null;
     }
-
     processBtn.innerHTML = originalText;
 }
 
 /**
- * Success feedback animation
+ * Flashes the modal border green to indicate success.
  */
 function showSuccessFeedback() {
-    const modal = document.getElementById('uploadModal');
-    const modalContent = modal?.querySelector('.bg-fcp-gray');
-
+    const modalContent = document.querySelector('#uploadModal .bg-fcp-gray');
     if (modalContent) {
-        // Flash green border
-        animate(
-            modalContent,
-            {
-                borderColor: ['#3A3A3E', '#30D158', '#3A3A3E'],
-                scale: [1, 1.02, 1]
-            },
-            { duration: 0.6, easing: 'ease-in-out' }
-        );
+        animate(modalContent, { borderColor: ['#3A3A3E', '#30D158', '#3A3A3E'] }, { duration: 0.6, easing: 'ease-in-out' });
     }
 }
 
 /**
- * Error feedback animation
+ * Shakes the modal and flashes the border red to indicate an error.
  */
 function showErrorFeedback() {
-    const modal = document.getElementById('uploadModal');
-    const modalContent = modal?.querySelector('.bg-fcp-gray');
-
+    const modalContent = document.querySelector('#uploadModal .bg-fcp-gray');
     if (modalContent) {
-        // Shake animation with red border
-        animate(
-            modalContent,
-            {
-                x: [-10, 10, -10, 10, 0],
-                borderColor: ['#3A3A3E', '#FF453A', '#3A3A3E']
-            },
-            { duration: 0.5, easing: 'ease-in-out' }
-        );
+        animate(modalContent, {
+            x: [-10, 10, -10, 10, 0],
+            borderColor: ['#3A3A3E', '#FF453A', '#3A3A3E']
+        }, { duration: 0.5, easing: 'ease-in-out' });
     }
 }
 
 /**
- * Animate file upload success
+ * Animates the upload area to confirm a successful file drop.
  */
 function animateFileUploadSuccess() {
     const uploadArea = document.getElementById('uploadArea');
-    if (!uploadArea) return;
-
-    animate(
-        uploadArea,
-        {
+    if (uploadArea) {
+        animate(uploadArea, {
             backgroundColor: ['#2A2A2D', '#30D15830', '#2A2A2D'],
             borderColor: ['#4B5563', '#30D158', '#4B5563']
-        },
-        { duration: 0.6 }
-    );
+        }, { duration: 0.6 });
+    }
 }
 
-// Make functions globally accessible for use in other scripts
+// Make functions globally accessible
 window.showProcessingAnimation = showProcessingAnimation;
 window.hideProcessingAnimation = hideProcessingAnimation;
 window.showSuccessFeedback = showSuccessFeedback;
 window.showErrorFeedback = showErrorFeedback;
 window.animateFileUploadSuccess = animateFileUploadSuccess;
 
-// Initialize animations when DOM is ready
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initSubtitleAnimations);
-} else {
-    initSubtitleAnimations();
+// Respects user's preference for reduced motion.
+const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+if (!prefersReducedMotion) {
+    // Initialize interactive animations as soon as the DOM is ready.
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initSubtitleAnimations);
+    } else {
+        initSubtitleAnimations();
+    }
 }

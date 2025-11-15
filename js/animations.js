@@ -13,7 +13,7 @@ function initAnimations() {
     initHeroAnimations();
     initToolCardAnimations();
     initNavAnimations();
-    initMobileMenuAnimations();
+    // Mobile menu handled by main.js to avoid conflicts
     initFooterAnimations();
     initHoverEffects();
 }
