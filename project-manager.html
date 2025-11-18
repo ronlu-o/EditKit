@@ -11,6 +11,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/page-transitions.css">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -60,11 +61,13 @@
                 </div>
                 <div class="hidden md:block">
                     <div class="ml-10 flex items-baseline space-x-4">
-                        <a href="index.html" class="px-3 py-2 rounded-md text-sm font-medium text-gray-300 hover:text-white hover:bg-gray-700 transition-colors">Home</a>
-                        <a href="lut-previewer.html" class="px-3 py-2 rounded-md text-sm font-medium text-gray-300 hover:text-white hover:bg-gray-700 transition-colors">LUT Previewer</a>
-                        <a href="subtitles.html" class="px-3 py-2 rounded-md text-sm font-medium text-gray-300 hover:text-white hover:bg-gray-700 transition-colors">Subtitles</a>
-                        <a href="blog.html" class="px-3 py-2 rounded-md text-sm font-medium text-gray-300 hover:text-white hover:bg-gray-700 transition-colors">Blog</a>
-                        <a href="about.html" class="px-3 py-2 rounded-md text-sm font-medium text-gray-300 hover:text-white hover:bg-gray-700 transition-colors">About</a>
+                        <a href="index.html" class="px-3 py-2 rounded-md text-sm font-medium text-fcp-text-secondary hover:text-fcp-text hover:bg-fcp-border transition-all hover:scale-105">Home</a>
+                        <a href="lut-previewer.html" class="px-3 py-2 rounded-md text-sm font-medium text-fcp-text-secondary hover:text-fcp-text hover:bg-fcp-border transition-all hover:scale-105">LUT Previewer</a>
+                        <a href="subtitles.html" class="px-3 py-2 rounded-md text-sm font-medium text-fcp-text-secondary hover:text-fcp-text hover:bg-fcp-border transition-all hover:scale-105">Subtitles</a>
+                        <a href="fcpxml.html" class="px-3 py-2 rounded-md text-sm font-medium text-fcp-text-secondary hover:text-fcp-text hover:bg-fcp-border transition-all hover:scale-105">FCPXML</a>
+                        <a href="project-manager.html" class="px-3 py-2 rounded-md text-sm font-medium text-white bg-gray-700">Projects</a>
+                        <a href="blog.html" class="px-3 py-2 rounded-md text-sm font-medium text-fcp-text-secondary hover:text-fcp-text hover:bg-fcp-border transition-all hover:scale-105">Blog</a>
+                        <a href="about.html" class="px-3 py-2 rounded-md text-sm font-medium text-fcp-text-secondary hover:text-fcp-text hover:bg-fcp-border transition-all hover:scale-105">About</a>
                     </div>
                 </div>
                 <!-- Mobile menu button -->
@@ -83,6 +86,8 @@
                 <a href="index.html" class="block px-3 py-2 rounded-md text-base font-medium text-fcp-text-secondary hover:text-fcp-text hover:bg-fcp-border">Home</a>
                 <a href="lut-previewer.html" class="block px-3 py-2 rounded-md text-base font-medium text-fcp-text-secondary hover:text-fcp-text hover:bg-fcp-border">LUT Previewer</a>
                 <a href="subtitles.html" class="block px-3 py-2 rounded-md text-base font-medium text-fcp-text-secondary hover:text-fcp-text hover:bg-fcp-border">Subtitles</a>
+                <a href="fcpxml.html" class="block px-3 py-2 rounded-md text-base font-medium text-fcp-text-secondary hover:text-fcp-text hover:bg-fcp-border">FCPXML</a>
+                <a href="project-manager.html" class="block px-3 py-2 rounded-md text-base font-medium text-fcp-text bg-fcp-border">Projects</a>
                 <a href="blog.html" class="block px-3 py-2 rounded-md text-base font-medium text-fcp-text-secondary hover:text-fcp-text hover:bg-fcp-border">Blog</a>
                 <a href="about.html" class="block px-3 py-2 rounded-md text-base font-medium text-fcp-text-secondary hover:text-fcp-text hover:bg-fcp-border">About</a>
             </div>
@@ -90,84 +95,104 @@
     </nav>
 
     <!-- Main Content -->
-    <main class="flex items-center justify-center min-h-screen py-12">
-        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <!-- Animated Icon -->
-            <div class="flex justify-center mb-8">
-                <div class="relative">
-                    <!-- Background glow effect -->
-                    <div class="absolute inset-0 bg-fcp-accent rounded-full blur-xl opacity-20 animate-pulse-slow"></div>
-                    <!-- Main icon container -->
-                    <div class="relative w-32 h-32 bg-fcp-accent rounded-full flex items-center justify-center animate-float shadow-2xl">
-                        <svg class="w-16 h-16 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
-                        </svg>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Main heading with gradient text -->
-            <h1 class="text-5xl md:text-6xl font-bold mb-6">
-                <span class="bg-gradient-to-r from-fcp-text via-fcp-accent to-fcp-text bg-clip-text text-transparent">
-                    Project Manager
-                </span>
+    <main id="swup" class="transition-fade max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+        <!-- Header -->
+        <div class="text-center mb-12">
+            <h1 class="text-4xl md:text-5xl font-bold mb-4 text-fcp-text">
+                Project Manager
             </h1>
-
-            <!-- Subtitle -->
-            <h2 class="text-2xl md:text-3xl font-light text-fcp-text-secondary mb-8">
-                Coming Soon
-            </h2>
-
-            <!-- Description -->
-            <p class="text-lg text-fcp-text-secondary max-w-2xl mx-auto mb-12 leading-relaxed">
-                An intuitive project management suite designed specifically for Final Cut Pro, Premiere Pro, and DaVinci Resolve workflows is coming.
-                Track your editing progress, manage assets, collaborate with team members, and streamline your entire video production pipeline.
+            <p class="text-lg text-fcp-text-secondary max-w-2xl mx-auto">
+                Analyze your Final Cut Pro projects. Upload an FCPXML file to view project metrics, asset details, and applied effects.
             </p>
+        </div>
 
-            <!-- Feature preview cards -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-                <div class="bg-fcp-gray p-6 rounded-xl border border-fcp-border hover:border-fcp-accent transition-all duration-300 hover:scale-105">
-                    <div class="w-12 h-12 bg-fcp-accent rounded-lg flex items-center justify-center mb-4 mx-auto">
-                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
-                        </svg>
-                    </div>
-                    <h3 class="text-lg font-semibold text-fcp-text mb-2">Project Tracking</h3>
-                    <p class="text-sm text-fcp-text-secondary">Monitor editing progress, deadlines, and project milestones</p>
-                </div>
-
-                <div class="bg-fcp-gray p-6 rounded-xl border border-fcp-border hover:border-fcp-accent transition-all duration-300 hover:scale-105">
-                    <div class="w-12 h-12 bg-fcp-accent rounded-lg flex items-center justify-center mb-4 mx-auto">
-                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z"></path>
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5v4"></path>
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 5v4"></path>
-                        </svg>
-                    </div>
-                    <h3 class="text-lg font-semibold text-fcp-text mb-2">Asset Management</h3>
-                    <p class="text-sm text-fcp-text-secondary">Organize media files, LUTs, and project resources</p>
-                </div>
-
-                <div class="bg-fcp-gray p-6 rounded-xl border border-fcp-border hover:border-fcp-accent transition-all duration-300 hover:scale-105">
-                    <div class="w-12 h-12 bg-fcp-accent rounded-lg flex items-center justify-center mb-4 mx-auto">
-                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
-                        </svg>
-                    </div>
-                    <h3 class="text-lg font-semibold text-fcp-text mb-2">Team Collaboration</h3>
-                    <p class="text-sm text-fcp-text-secondary">Share feedback, notes, and coordinate with your team</p>
-                </div>
+        <!-- Upload Area -->
+        <div id="uploadSection" class="mb-8">
+            <div id="uploadArea" class="border-2 border-dashed border-fcp-border rounded-xl p-12 text-center hover:border-fcp-accent transition-colors cursor-pointer bg-fcp-gray">
+                <svg class="w-16 h-16 mx-auto mb-4 text-fcp-text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                </svg>
+                <h3 class="text-xl font-semibold mb-2 text-fcp-text">Drop FCPXML File Here</h3>
+                <p class="text-fcp-text-secondary mb-4">or click to browse</p>
+                <input type="file" id="fcpxmlInput" accept=".fcpxml" class="hidden">
+                <button id="browseButton" class="px-6 py-2 bg-fcp-accent text-white rounded-lg hover:bg-blue-600 transition-colors">
+                    Browse Files
+                </button>
             </div>
+        </div>
 
-
-            <!-- Back to home link -->
-            <div class="mt-12">
-                <a href="index.html" class="inline-flex items-center text-fcp-accent hover:text-fcp-text transition-colors group">
-                    <svg class="w-4 h-4 mr-2 transform group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+        <!-- Results Container (Hidden by default) -->
+        <div id="resultsContainer" class="hidden space-y-8">
+            <!-- Project Overview -->
+            <section class="bg-fcp-gray rounded-xl p-6 border border-fcp-border">
+                <h2 class="text-2xl font-bold mb-6 flex items-center text-fcp-text">
+                    <svg class="w-6 h-6 mr-2 text-fcp-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
                     </svg>
-                    Back to EditKit Home
-                </a>
+                    Project Tracking
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4" id="projectStats">
+                    <!-- Stats will be populated by JavaScript -->
+                </div>
+            </section>
+
+            <!-- Asset Management -->
+            <section class="bg-fcp-gray rounded-xl p-6 border border-fcp-border">
+                <h2 class="text-2xl font-bold mb-6 flex items-center text-fcp-text">
+                    <svg class="w-6 h-6 mr-2 text-fcp-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path>
+                    </svg>
+                    Asset Management
+                </h2>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm" id="assetsTable">
+                        <thead class="text-left border-b border-fcp-border">
+                            <tr class="text-fcp-text">
+                                <th class="pb-3 font-semibold">Asset Name</th>
+                                <th class="pb-3 font-semibold">Type</th>
+                                <th class="pb-3 font-semibold">Duration</th>
+                                <th class="pb-3 font-semibold">Codec</th>
+                                <th class="pb-3 font-semibold">Ingest Date</th>
+                            </tr>
+                        </thead>
+                        <tbody id="assetsTableBody" class="text-fcp-text-secondary">
+                            <!-- Asset rows will be populated by JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Timeline Health -->
+            <section class="bg-fcp-gray rounded-xl p-6 border border-fcp-border">
+                <h2 class="text-2xl font-bold mb-6 flex items-center">
+                    <svg class="w-6 h-6 mr-2 text-fcp-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    Timeline Health
+                </h2>
+                <div id="healthContainer" class="space-y-3">
+                    <!-- Health info will be populated by JavaScript -->
+                </div>
+            </section>
+
+            <!-- Effects and Grading -->
+            <section class="bg-fcp-gray rounded-xl p-6 border border-fcp-border">
+                <h2 class="text-2xl font-bold mb-6 flex items-center">
+                    <svg class="w-6 h-6 mr-2 text-fcp-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"></path>
+                    </svg>
+                    Applied Effects & Color Grading
+                </h2>
+                <div id="effectsContainer" class="space-y-4">
+                    <!-- Effects will be populated by JavaScript -->
+                </div>
+            </section>
+
+            <!-- New Analysis Button -->
+            <div class="text-center">
+                <button id="newAnalysisButton" class="px-6 py-3 bg-fcp-border text-fcp-text rounded-lg hover:bg-fcp-accent transition-colors">
+                    Analyze Another Project
+                </button>
             </div>
         </div>
     </main>
@@ -191,5 +216,6 @@
     </footer>
 
     <script src="js/main.js"></script>
+    <script src="js/project-manager.js"></script>
 </body>
 </html>

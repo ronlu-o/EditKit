@@ -1,81 +1,41 @@
 /**
- * Modern Page Transitions using View Transition API (2025)
- * Only transitions the main content, keeps navigation/footer stable
- * Supported in Chrome 126+, Edge 126+, Safari 18.2+
+ * Simple CSS Page Transitions (2025)
+ * Modern best practice for multi-page sites
  */
 
-/* Enable view transitions for cross-document navigation */
-@view-transition {
-    navigation: auto;
+/* Smooth page fade-in on load - only main content */
+@media (prefers-reduced-motion: no-preference) {
+    main {
+        animation: fadeIn 0.2s ease-out;
+    }
 }
 
-/* Keep navigation persistent (no fade) */
-nav {
-    view-transition-name: main-nav;
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
-/* Keep footer persistent (no fade) */
-footer {
-    view-transition-name: main-footer;
-}
-
-/* Only transition the main content area */
+/* Prevent flash of white content */
 main {
-    view-transition-name: main-content;
-}
-
-/* Disable default morph/scale/position animations - keep everything static */
-::view-transition-group(main-content),
-::view-transition-image-pair(main-content) {
-    animation: none;
-}
-
-/* Force both old and new to same dimensions - prevents morphing/warping */
-::view-transition-old(main-content),
-::view-transition-new(main-content) {
-    width: 100%;
-    height: 100%;
-    object-fit: none;
-    object-position: top left;
-    overflow: clip;
-}
-
-/* Default: Simple crossfade (old and new fade simultaneously) */
-::view-transition-old(main-content) {
-    animation: 200ms cubic-bezier(0.4, 0, 1, 1) forwards fade-out;
-    z-index: 1;
-}
-
-::view-transition-new(main-content) {
-    animation: 200ms cubic-bezier(0, 0, 0.2, 1) forwards fade-in;
-    z-index: 2;
-}
-
-/* Fade out animation */
-@keyframes fade-out {
-    from { opacity: 1; }
-    to { opacity: 0; }
-}
-
-/* Fade in animation */
-@keyframes fade-in {
-    from { opacity: 0; }
-    to { opacity: 1; }
-}
-
-/* Prevent old content from reappearing */
-::view-transition-old(main-content):only-child {
-    animation: none;
+    min-height: 50vh;
 }
 
 /* Respect reduced motion preference */
 @media (prefers-reduced-motion: reduce) {
-    @view-transition {
-        navigation: none;
+    main {
+        animation: none !important;
     }
 
-    ::view-transition-old(main-content),
-    ::view-transition-new(main-content) {
-        animation: none;
+    @keyframes fadeIn {
+        from {
+            opacity: 1;
+            transform: translateY(0);
+        }
     }
 }
