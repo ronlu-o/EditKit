@@ -4,6 +4,7 @@
  */
 
 let fcpxmlData = null;
+const SAMPLE_FCPXML_URL = 'https://github.com/ronlu-o/EditKit/blob/main/fcpxml/Info.fcpxml';
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', () => {
@@ -28,6 +29,7 @@ function initializeUpload() {
     // Load sample button click
     if (loadSampleButton) {
         loadSampleButton.addEventListener('click', () => {
+            showSampleLocationToast();
             loadSampleFile();
         });
     }
@@ -91,6 +93,41 @@ function loadSampleFile() {
         .catch(error => {
             alert('Error loading sample file: ' + error.message);
         });
+}
+
+/**
+ * Show toast that points to the hosted sample file
+ */
+function showSampleLocationToast() {
+    const container = document.getElementById('toastContainer');
+    if (!container) {
+        return;
+    }
+
+    const toast = document.createElement('div');
+    toast.className = 'toast-message';
+    toast.innerHTML = `
+        <p class="text-sm leading-relaxed">
+            You can find the sample FCPXML here:
+            <a href="${SAMPLE_FCPXML_URL}" target="_blank" rel="noopener noreferrer">${SAMPLE_FCPXML_URL}</a>
+        </p>
+    `;
+
+    container.appendChild(toast);
+
+    // Allow layout to register before starting animation
+    requestAnimationFrame(() => {
+        toast.classList.add('show');
+    });
+
+    const hideDelay = 5000;
+    setTimeout(() => {
+        toast.classList.add('hide');
+    }, hideDelay - 350);
+
+    setTimeout(() => {
+        toast.remove();
+    }, hideDelay);
 }
 
 /**
