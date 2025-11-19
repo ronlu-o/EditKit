@@ -17,6 +17,7 @@ function initializeUpload() {
     const uploadArea = document.getElementById('uploadArea');
     const fileInput = document.getElementById('fcpxmlInput');
     const browseButton = document.getElementById('browseButton');
+    const loadSampleButton = document.getElementById('loadSampleButton');
     const newAnalysisButton = document.getElementById('newAnalysisButton');
 
     // Browse button click
@@ -24,9 +25,19 @@ function initializeUpload() {
         fileInput.click();
     });
 
+    // Load sample button click
+    if (loadSampleButton) {
+        loadSampleButton.addEventListener('click', () => {
+            loadSampleFile();
+        });
+    }
+
     // Upload area click
-    uploadArea.addEventListener('click', () => {
-        fileInput.click();
+    uploadArea.addEventListener('click', (e) => {
+        // Don't trigger file input if clicking the load sample button
+        if (e.target.id !== 'loadSampleButton' && !e.target.closest('#loadSampleButton')) {
+            fileInput.click();
+        }
     });
 
     // File input change
@@ -61,6 +72,25 @@ function initializeUpload() {
             resetAnalyzer();
         });
     }
+}
+
+/**
+ * Load sample FCPXML file
+ */
+function loadSampleFile() {
+    fetch('fcpxml/Info.fcpxml')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Sample file not found');
+            }
+            return response.text();
+        })
+        .then(xmlString => {
+            parseFCPXML(xmlString);
+        })
+        .catch(error => {
+            alert('Error loading sample file: ' + error.message);
+        });
 }
 
 /**
@@ -266,12 +296,12 @@ function displayTimelineHealth() {
     // Check for color grading
     const colorFilters = fcpxmlData.querySelectorAll('filter-video[ref], filter-video-mask[ref]');
     const lutCount = Array.from(colorFilters).filter(f => {
-        const effect = fcpxmlData.querySelector(`effect[uid="${f.getAttribute('ref')}"]`);
+        const effect = fcpxmlData.querySelector(`effect[id="${f.getAttribute('ref')}"]`);
         return effect?.getAttribute('name')?.includes('LUT');
     }).length;
 
     const colorCorrectionCount = Array.from(colorFilters).filter(f => {
-        const effect = fcpxmlData.querySelector(`effect[uid="${f.getAttribute('ref')}"]`);
+        const effect = fcpxmlData.querySelector(`effect[id="${f.getAttribute('ref')}"]`);
         return effect?.getAttribute('name')?.includes('Color');
     }).length;
 
@@ -344,8 +374,8 @@ function displayEffects() {
         const appliedFilters = timeline.querySelectorAll('filter-video[ref], filter-video-mask[ref]');
 
         appliedFilters.forEach(filter => {
-            const effectUid = filter.getAttribute('ref');
-            const effect = fcpxmlData.querySelector(`effect[uid="${effectUid}"]`);
+            const effectId = filter.getAttribute('ref');
+            const effect = fcpxmlData.querySelector(`effect[id="${effectId}"]`);
             if (!effect) return;
 
             const effectName = effect.getAttribute('name');
@@ -370,55 +400,13 @@ function displayEffects() {
         });
     }
 
-    // Group by effect type and show details
+    // Group by effect type and show details (excluding color grading)
     const effectCards = [];
-
-    // LUT effects with mix values
-    const lutEffects = detailedEffects.filter(e => e.effectName?.includes('LUT'));
-    if (lutEffects.length > 0) {
-        const lutDetails = lutEffects.map(e =>
-            `<li class="text-sm text-fcp-text-secondary">${e.clipName}: Mix ${e.params['Mix'] || 'N/A'}</li>`
-        ).join('');
-        effectCards.push(`
-            <div class="bg-fcp-dark p-4 rounded-lg border border-fcp-border">
-                <div class="flex items-center justify-between mb-3">
-                    <h3 class="font-semibold text-fcp-text">Custom LUT</h3>
-                    <span class="px-3 py-1 bg-fcp-accent bg-opacity-20 text-fcp-accent rounded-full text-sm">
-                        ${lutEffects.length} clips
-                    </span>
-                </div>
-                <ul class="space-y-1">${lutDetails}</ul>
-            </div>
-        `);
-    }
-
-    // Color Correction effects
-    const colorEffects = detailedEffects.filter(e => e.effectName?.includes('Color Correction'));
-    if (colorEffects.length > 0) {
-        const colorDetails = colorEffects.map(e => {
-            const sat = e.params['Saturation Global'];
-            return `<li class="text-sm text-fcp-text-secondary">${e.clipName}${sat ? `: Saturation ${sat}` : ''}</li>`;
-        }).join('');
-        effectCards.push(`
-            <div class="bg-fcp-dark p-4 rounded-lg border border-fcp-border">
-                <div class="flex items-center justify-between mb-3">
-                    <h3 class="font-semibold text-fcp-text">Color Correction</h3>
-                    <span class="px-3 py-1 bg-green-900 bg-opacity-20 text-green-400 rounded-full text-sm">
-                        ${colorEffects.length} clips
-                    </span>
-                </div>
-                <ul class="space-y-1">${colorDetails}</ul>
-            </div>
-        `);
-    }
 
     // Sharpen effects
     const sharpenEffects = detailedEffects.filter(e => e.effectName?.includes('Sharpen'));
     if (sharpenEffects.length > 0) {
-        const sharpenDetails = sharpenEffects.map(e => {
-            const amount = e.params['Amount'];
-            return `<li class="text-sm text-fcp-text-secondary">${e.clipName}${amount ? `: Amount ${amount}` : ''}</li>`;
-        }).join('');
+        const clipNames = [...new Set(sharpenEffects.map(e => e.clipName))].join(', ');
         effectCards.push(`
             <div class="bg-fcp-dark p-4 rounded-lg border border-fcp-border">
                 <div class="flex items-center justify-between mb-3">
@@ -427,21 +415,20 @@ function displayEffects() {
                         ${sharpenEffects.length} clips
                     </span>
                 </div>
-                <ul class="space-y-1">${sharpenDetails}</ul>
+                <p class="text-sm text-fcp-text-secondary">${clipNames}</p>
             </div>
         `);
     }
 
-    // Other effects
+    // Other effects (excluding LUT and Color Correction)
     const otherEffects = detailedEffects.filter(e =>
         !e.effectName?.includes('LUT') &&
         !e.effectName?.includes('Color Correction') &&
+        !e.effectName?.includes('Color Adjustments') &&
         !e.effectName?.includes('Sharpen')
     );
     if (otherEffects.length > 0) {
-        const otherDetails = otherEffects.map(e =>
-            `<li class="text-sm text-fcp-text-secondary">${e.clipName}: ${e.effectName}</li>`
-        ).join('');
+        const effectList = otherEffects.map(e => `${e.clipName} - ${e.effectName}`).join(', ');
         effectCards.push(`
             <div class="bg-fcp-dark p-4 rounded-lg border border-fcp-border">
                 <div class="flex items-center justify-between mb-3">
@@ -450,7 +437,7 @@ function displayEffects() {
                         ${otherEffects.length} clips
                     </span>
                 </div>
-                <ul class="space-y-1">${otherDetails}</ul>
+                <p class="text-sm text-fcp-text-secondary">${effectList}</p>
             </div>
         `);
     }

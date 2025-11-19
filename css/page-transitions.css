@@ -6,7 +6,7 @@
 /* Smooth page fade-in on load - only main content */
 @media (prefers-reduced-motion: no-preference) {
     main {
-        animation: fadeIn 0.2s ease-out;
+        animation: fadeIn 0.25s ease-out;
     }
 }
 

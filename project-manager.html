@@ -46,7 +46,7 @@
         }
     </script>
 </head>
-<body class="bg-fcp-dark text-fcp-text font-sans min-h-screen">
+<body class="bg-fcp-dark text-fcp-text font-sans min-h-screen flex flex-col">
     <!-- Navigation -->
     <nav class="bg-fcp-gray border-b border-fcp-border">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -95,7 +95,7 @@
     </nav>
 
     <!-- Main Content -->
-    <main id="swup" class="transition-fade max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+    <main id="swup" class="transition-fade flex-1 max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
         <!-- Header -->
         <div class="text-center mb-12">
             <h1 class="text-4xl md:text-5xl font-bold mb-4 text-fcp-text">
@@ -115,9 +115,14 @@
                 <h3 class="text-xl font-semibold mb-2 text-fcp-text">Drop FCPXML File Here</h3>
                 <p class="text-fcp-text-secondary mb-4">or click to browse</p>
                 <input type="file" id="fcpxmlInput" accept=".fcpxml" class="hidden">
-                <button id="browseButton" class="px-6 py-2 bg-fcp-accent text-white rounded-lg hover:bg-blue-600 transition-colors">
-                    Browse Files
-                </button>
+                <div class="flex gap-3 justify-center">
+                    <button id="browseButton" class="px-6 py-2 bg-fcp-accent text-white rounded-lg hover:bg-blue-600 transition-colors">
+                        Browse Files
+                    </button>
+                    <button id="loadSampleButton" class="px-6 py-2 bg-fcp-border text-fcp-text rounded-lg hover:bg-fcp-accent hover:text-white transition-colors">
+                        Load Sample
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -175,13 +180,13 @@
                 </div>
             </section>
 
-            <!-- Effects and Grading -->
+            <!-- Effects -->
             <section class="bg-fcp-gray rounded-xl p-6 border border-fcp-border">
                 <h2 class="text-2xl font-bold mb-6 flex items-center">
                     <svg class="w-6 h-6 mr-2 text-fcp-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"></path>
                     </svg>
-                    Applied Effects & Color Grading
+                    Applied Effects
                 </h2>
                 <div id="effectsContainer" class="space-y-4">
                     <!-- Effects will be populated by JavaScript -->

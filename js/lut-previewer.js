@@ -13,8 +13,10 @@ class LUTPreviewer {
         // Get DOM elements
         this.imageUploadArea = document.getElementById('imageUploadArea');
         this.imageInput = document.getElementById('imageInput');
+        this.loadSampleImageButton = document.getElementById('loadSampleImageButton');
         this.lutUploadArea = document.getElementById('lutUploadArea');
         this.lutInput = document.getElementById('lutInput');
+        this.loadSampleLUTButton = document.getElementById('loadSampleLUTButton');
         this.canvasContainer = document.getElementById('canvasContainer');
         this.previewCanvas = document.getElementById('previewCanvas');
         this.uploadPrompt = document.getElementById('uploadPrompt');
@@ -30,16 +32,38 @@ class LUTPreviewer {
 
     setupEventListeners() {
         // Image upload
-        this.imageUploadArea.addEventListener('click', () => this.imageInput.click());
+        this.imageUploadArea.addEventListener('click', (e) => {
+            if (!e.target.closest('#loadSampleImageButton')) {
+                this.imageInput.click();
+            }
+        });
         this.imageUploadArea.addEventListener('dragover', (e) => this.handleDragOver(e));
         this.imageUploadArea.addEventListener('drop', (e) => this.handleImageDrop(e));
         this.imageInput.addEventListener('change', (e) => this.handleImageUpload(e));
 
+        // Load sample image button
+        if (this.loadSampleImageButton) {
+            this.loadSampleImageButton.addEventListener('click', () => this.loadSampleImage());
+        }
+
         // LUT upload
-        this.lutUploadArea.addEventListener('click', () => this.lutInput.click());
+        this.lutUploadArea.addEventListener('click', (e) => {
+            if (!e.target.closest('#loadSampleLUTButton')) {
+                this.lutInput.click();
+            }
+        });
         this.lutUploadArea.addEventListener('dragover', (e) => this.handleDragOver(e));
         this.lutUploadArea.addEventListener('drop', (e) => this.handleLUTDrop(e));
         this.lutInput.addEventListener('change', (e) => this.handleLUTUpload(e));
+
+        // Load sample LUT button
+        if (this.loadSampleLUTButton) {
+            this.loadSampleLUTButton.addEventListener('click', () => {
+                if (this.currentImage) {
+                    this.loadSampleLUT();
+                }
+            });
+        }
 
         // Global controls
         this.globalIntensitySlider.addEventListener('input', (e) => this.handleGlobalIntensityChange(e));
@@ -79,6 +103,22 @@ class LUTPreviewer {
         this.loadLUTFiles(e.target.files);
     }
 
+    loadSampleImage() {
+        const img = new Image();
+        img.onload = () => {
+            this.currentImage = img;
+            this.processor.loadImage(img);
+            this.showCanvas();
+            this.enableControls();
+            this.enableSampleLUTButton();
+            this.processCurrentImage();
+        };
+        img.onerror = () => {
+            this.showError('Error loading sample image');
+        };
+        img.src = 'assets/sample-image.jpg';
+    }
+
     loadImage(file) {
         const reader = new FileReader();
         reader.onload = (e) => {
@@ -88,6 +128,7 @@ class LUTPreviewer {
                 this.processor.loadImage(img);
                 this.showCanvas();
                 this.enableControls();
+                this.enableSampleLUTButton();
                 this.processCurrentImage();
             };
             img.src = e.target.result;
@@ -101,6 +142,41 @@ class LUTPreviewer {
                 this.loadLUTFile(file);
             }
         });
+    }
+
+    loadSampleLUT() {
+        // Check if the sample LUT is already loaded
+        const existingLUT = this.lutList.querySelector('[data-filename="Vitality.CUBE"]');
+        if (existingLUT) {
+            return; // Already loaded, do nothing
+        }
+
+        fetch('assets/Vitality.CUBE')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Sample LUT file not found');
+                }
+                return response.text();
+            })
+            .then(lutContent => {
+                try {
+                    const lut = this.processor.addLUT('Vitality.CUBE', lutContent);
+                    this.addLUTToUI('Vitality.CUBE', lut);
+                    this.processCurrentImage();
+                } catch (error) {
+                    this.showError(`Failed to load sample LUT: ${error.message}`);
+                }
+            })
+            .catch(error => {
+                this.showError('Error loading sample LUT file: ' + error.message);
+            });
+    }
+
+    enableSampleLUTButton() {
+        if (this.loadSampleLUTButton) {
+            this.loadSampleLUTButton.disabled = false;
+            this.loadSampleLUTButton.classList.remove('opacity-50', 'cursor-not-allowed');
+        }
     }
 
     loadLUTFile(file) {
