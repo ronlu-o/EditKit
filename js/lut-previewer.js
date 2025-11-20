@@ -1,4 +1,4 @@
-// LUT Previewer Interface
+// Color Grader Interface
 class LUTPreviewer {
     constructor() {
         this.processor = new LUTProcessor();
@@ -418,7 +418,7 @@ class LUTPreviewer {
     }
 }
 
-// Initialize the LUT previewer when DOM is loaded
+// Initialize the Color Grader when DOM is loaded
 let lutPreviewer;
 document.addEventListener('DOMContentLoaded', function() {
     lutPreviewer = new LUTPreviewer();

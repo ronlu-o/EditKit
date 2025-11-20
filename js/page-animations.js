@@ -1,6 +1,6 @@
 /**
  * Universal Page Animations for EditKit
- * Works across all tool pages (LUT, FCPXML, About, Blog, etc.)
+ * Works across all tool pages (Color Grader, FCPXML, About, Blog, etc.)
  * Modern 2025 approach: subtle fades, no layout shifts
  */
 
@@ -148,7 +148,7 @@ function initHoverEffects() {
 }
 
 /**
- * Animate canvas elements (for LUT previewer)
+ * Animate canvas elements (for Color Grader)
  */
 function initCanvasAnimations() {
     const canvas = document.querySelector('#previewCanvas');
@@ -169,14 +169,14 @@ function initCanvasAnimations() {
 }
 
 /**
- * Slider animations (for LUT intensity slider)
+ * Slider animations (for color grading controls)
  */
 function initSliderAnimations() {
     const sliders = document.querySelectorAll('input[type="range"]');
 
     sliders.forEach(slider => {
         slider.addEventListener('input', () => {
-            // Skip the global intensity label on LUT previewer to avoid text jitter
+            // Skip the global intensity label on Color Grader to avoid text jitter
             // if (slider.id === 'globalIntensity') return;
             // Subtle pulse on slider change
             const label = slider.previousElementSibling || slider.nextElementSibling;
