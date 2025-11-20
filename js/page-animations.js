@@ -192,6 +192,30 @@ function initSliderAnimations() {
 }
 
 /**
+ * Footer animations - GitHub link hover
+ */
+function initFooterAnimations() {
+    const githubLink = document.querySelector('footer a[href*="github"]');
+    if (!githubLink) return;
+
+    const githubIcon = githubLink.querySelector('svg');
+
+    githubLink.addEventListener('mouseenter', () => {
+        animate(githubLink, { x: 3 }, { duration: 0.2 });
+        if (githubIcon) {
+            animate(githubIcon, { scale: 1.1 }, { duration: 0.2 });
+        }
+    });
+
+    githubLink.addEventListener('mouseleave', () => {
+        animate(githubLink, { x: 0 }, { duration: 0.2 });
+        if (githubIcon) {
+            animate(githubIcon, { scale: 1 }, { duration: 0.2 });
+        }
+    });
+}
+
+/**
  * Success/error feedback animations
  */
 function showSuccessAnimation(element) {
@@ -230,9 +254,11 @@ if (document.readyState === 'loading') {
         initPageAnimations();
         initCanvasAnimations();
         initSliderAnimations();
+        initFooterAnimations();
     });
 } else {
     initPageAnimations();
     initCanvasAnimations();
     initSliderAnimations();
+    initFooterAnimations();
 }

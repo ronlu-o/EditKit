@@ -11,6 +11,7 @@ const { animate, stagger, inView } = Motion;
 function initAboutAnimations() {
     initFastReveal();
     initSectionAnimations();
+    initFooterAnimations();
 }
 
 /**
@@ -126,6 +127,30 @@ function initSectionAnimations() {
             },
             { amount: 0.3, margin: '0px 0px -100px 0px' }
         );
+    });
+}
+
+/**
+ * Footer animations - GitHub link hover
+ */
+function initFooterAnimations() {
+    const githubLink = document.querySelector('footer a[href*="github"]');
+    if (!githubLink) return;
+
+    const githubIcon = githubLink.querySelector('svg');
+
+    githubLink.addEventListener('mouseenter', () => {
+        animate(githubLink, { x: 3 }, { duration: 0.2 });
+        if (githubIcon) {
+            animate(githubIcon, { scale: 1.1 }, { duration: 0.2 });
+        }
+    });
+
+    githubLink.addEventListener('mouseleave', () => {
+        animate(githubLink, { x: 0 }, { duration: 0.2 });
+        if (githubIcon) {
+            animate(githubIcon, { scale: 1 }, { duration: 0.2 });
+        }
     });
 }
 

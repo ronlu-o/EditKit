@@ -15,6 +15,7 @@ function initSubtitleAnimations() {
     initFileDropZoneAnimations();
     initHoverEffects();
     overrideModalFunctions();
+    initFooterAnimations();
 }
 
 /**
@@ -167,6 +168,30 @@ function animateFileUploadSuccess() {
             borderColor: ['#4B5563', '#30D158', '#4B5563']
         }, { duration: 0.6 });
     }
+}
+
+/**
+ * Footer animations - GitHub link hover
+ */
+function initFooterAnimations() {
+    const githubLink = document.querySelector('footer a[href*="github"]');
+    if (!githubLink) return;
+
+    const githubIcon = githubLink.querySelector('svg');
+
+    githubLink.addEventListener('mouseenter', () => {
+        animate(githubLink, { x: 3 }, { duration: 0.2 });
+        if (githubIcon) {
+            animate(githubIcon, { scale: 1.1 }, { duration: 0.2 });
+        }
+    });
+
+    githubLink.addEventListener('mouseleave', () => {
+        animate(githubLink, { x: 0 }, { duration: 0.2 });
+        if (githubIcon) {
+            animate(githubIcon, { scale: 1 }, { duration: 0.2 });
+        }
+    });
 }
 
 // Make functions globally accessible
