@@ -5,6 +5,102 @@ let uploadedFile = null;
 let manualInputMode = false;
 let manualInputContent = '';
 let lrcxConversionMode = 'intelligent';
+let outputMode = 'download';
+
+const PROCESS_LABEL = 'Process';
+
+function updateProcessButtonLabel() {
+    const processBtn = document.getElementById('processBtn');
+    if (!processBtn) return;
+    processBtn.textContent = PROCESS_LABEL;
+}
+
+function setProcessingState(isProcessing) {
+    const processBtn = document.getElementById('processBtn');
+    const outputToggle = document.getElementById('outputToggle');
+
+    if (isProcessing) {
+        setProcessMessage('');
+        if (processBtn) {
+            processBtn.textContent = 'Processing...';
+            processBtn.disabled = true;
+        }
+        if (outputToggle) outputToggle.disabled = true;
+    } else {
+        if (processBtn) {
+            processBtn.textContent = PROCESS_LABEL;
+            processBtn.disabled = true;
+        }
+        if (outputToggle) outputToggle.disabled = true;
+    }
+}
+
+function enableActionButtons(enable) {
+    const processBtn = document.getElementById('processBtn');
+    const outputToggle = document.getElementById('outputToggle');
+    if (processBtn) processBtn.disabled = !enable;
+    if (outputToggle) outputToggle.disabled = !enable;
+}
+
+function finishProcessing() {
+    outputMode = 'download';
+    enableActionButtons(true);
+    updateProcessButtonLabel();
+}
+
+
+function setManualInputToggleEnabled(enabled) {
+    const toggle = document.getElementById('toggleManualInput');
+    if (!toggle) return;
+    toggle.disabled = !enabled;
+    toggle.classList.toggle('opacity-50', !enabled);
+    toggle.classList.toggle('pointer-events-none', !enabled);
+}
+
+function showCopySuccess() {
+    const processBtn = document.getElementById('processBtn');
+    if (!processBtn) return;
+    const original = processBtn.textContent;
+    processBtn.textContent = 'Copied!';
+    setTimeout(() => {
+        updateProcessButtonLabel();
+    }, 900);
+}
+
+function showLrcxTooltip(e) {
+    e?.preventDefault();
+    const messageLines = [
+        '<span class="font-semibold text-white">Original:</span> Original, non-translated lines only.',
+        '<span class="font-semibold text-white">Translations:</span> Translated lyrics lines only.',
+        '<span class="font-semibold text-white">Intelligent:</span> Keep base lyrics if the line is English; keep translated lines if the base line is not English.'
+    ];
+    const existing = document.getElementById('lrcx-tooltip');
+    const tooltip = existing || document.createElement('div');
+    tooltip.id = 'lrcx-tooltip';
+    tooltip.className = 'fixed z-50 max-w-xs bg-black/85 backdrop-blur-sm text-gray-200 text-[11px] rounded-lg shadow-xl border border-fcp-border px-2.5 py-1.5';
+    tooltip.innerHTML = messageLines.join('<br>');
+    tooltip.style.opacity = '0';
+    if (!existing) {
+        document.body.appendChild(tooltip);
+    }
+    tooltip.classList.remove('hidden');
+
+    const rect = e.currentTarget.getBoundingClientRect();
+    // Position below and centered on the info pill
+    const top = rect.bottom + window.scrollY + 6;
+    const left = Math.min(
+        window.scrollX + window.innerWidth - tooltip.offsetWidth - 16,
+        rect.left + window.scrollX - tooltip.offsetWidth / 2 + rect.width / 2
+    );
+    tooltip.style.top = `${top}px`;
+    tooltip.style.left = `${Math.max(window.scrollX + 8, left)}px`;
+    tooltip.style.opacity = '1';
+}
+
+function hideLrcxTooltip() {
+    const tooltip = document.getElementById('lrcx-tooltip');
+    if (tooltip) tooltip.classList.add('hidden');
+}
 
 // Open tool modal with specific configuration
 function openTool(toolType) {
@@ -17,13 +113,20 @@ function openTool(toolType) {
 
     // Reset modal state
     uploadedFile = null;
-    document.getElementById('processBtn').disabled = true;
+    enableActionButtons(false);
+    setManualInputToggleEnabled(true);
+    setProcessingState(false);
+    hideOutputMenu();
+    outputMode = 'download';
+    updateProcessButtonLabel();
+    setProcessMessage('');
     additionalOptions.classList.add('hidden');
     additionalOptions.innerHTML = '';
     manualInputMode = false;
     manualInputContent = '';
     lrcxConversionMode = 'intelligent';
     toggleUploadAreaAccessibility(false);
+    setManualInputToggleEnabled(true);
 
     // Configure modal based on tool type
     switch(toolType) {
@@ -34,7 +137,18 @@ function openTool(toolType) {
             additionalOptions.innerHTML = `
                 <div id="lrcxOptions" class="space-y-6">
                     <div>
-                        <p class="text-sm font-medium text-gray-300 mb-2">Output mode</p>
+                        <div class="flex items-center gap-2 mb-2">
+                            <p class="text-sm font-medium text-gray-300">Output mode</p>
+                            <button
+                                type="button"
+                                class="w-5 h-5 flex items-center justify-center rounded-full bg-white/15 border border-fcp-border/70 text-fcp-accent text-[9px] leading-none hover:border-fcp-accent hover:text-white transition-colors"
+                                aria-label="Output mode info"
+                                onmouseenter="showLrcxTooltip(event)"
+                                onmouseleave="hideLrcxTooltip()"
+                            >
+                                i
+                            </button>
+                        </div>
                         <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
                             <button data-lrcx-mode="original" type="button" class="lrcx-mode-btn px-3 py-2 border border-gray-600 rounded text-sm text-gray-300 hover:border-fcp-accent transition-colors">Original</button>
                             <button data-lrcx-mode="intelligent" type="button" class="lrcx-mode-btn px-3 py-2 border border-gray-600 rounded text-sm text-gray-300 hover:border-fcp-accent transition-colors">Intelligent</button>
@@ -407,6 +521,10 @@ function closeModal() {
     uploadedFile = null;
     manualInputMode = false;
     manualInputContent = '';
+    outputMode = 'download';
+    hideOutputMenu();
+    setProcessMessage('');
+    setManualInputToggleEnabled(true);
 
     // Reset file input safely
     const fileInput = document.getElementById('fileInput');
@@ -432,11 +550,7 @@ function closeModal() {
     }
 
     // Reset process button
-    const processBtn = document.getElementById('processBtn');
-    if (processBtn) {
-        processBtn.textContent = 'Process';
-        processBtn.disabled = true;
-    }
+    setProcessingState(false);
 }
 
 function initializeLrcxControls() {
@@ -484,6 +598,7 @@ function activateManualInput() {
     const container = document.getElementById('manualInputContainer');
     const textarea = document.getElementById('manualInputTextarea');
     const fileInput = document.getElementById('fileInput');
+    const uploadArea = document.getElementById('uploadArea');
 
     if (container) {
         container.classList.remove('hidden');
@@ -500,6 +615,12 @@ function activateManualInput() {
         fileInput.value = '';
     }
 
+    if (uploadArea) {
+        uploadArea.classList.add('opacity-50', 'pointer-events-none');
+        uploadArea.setAttribute('aria-disabled', 'true');
+    }
+
+    setManualInputToggleEnabled(false);
     uploadedFile = null;
     updateProcessButtonState();
 }
@@ -510,6 +631,8 @@ function deactivateManualInput() {
 
     const container = document.getElementById('manualInputContainer');
     const textarea = document.getElementById('manualInputTextarea');
+    const uploadArea = document.getElementById('uploadArea');
+    const fileInput = document.getElementById('fileInput');
 
     if (textarea) {
         textarea.value = '';
@@ -519,7 +642,17 @@ function deactivateManualInput() {
         container.classList.add('hidden');
     }
 
+    if (fileInput) {
+        fileInput.value = '';
+    }
+
+    if (uploadArea) {
+        uploadArea.classList.remove('opacity-50', 'pointer-events-none');
+        uploadArea.removeAttribute('aria-disabled');
+    }
+
     toggleUploadAreaAccessibility(false);
+    setManualInputToggleEnabled(true);
     updateProcessButtonState();
 }
 
@@ -588,25 +721,82 @@ function initializeGenericManualInputControls() {
 }
 
 function updateProcessButtonState() {
-    const processBtn = document.getElementById('processBtn');
-    if (!processBtn || currentTool !== 'lrcx-to-srt') return;
-
-    if (manualInputMode) {
-        processBtn.disabled = manualInputContent.trim().length === 0;
-    } else {
-        processBtn.disabled = !uploadedFile || uploadedFile.length === 0;
-    }
+    if (currentTool !== 'lrcx-to-srt') return;
+    const hasInput = manualInputMode ? manualInputContent.trim().length > 0 : (uploadedFile && uploadedFile.length > 0);
+    enableActionButtons(hasInput);
 }
 
 function updateGenericProcessButtonState() {
-    const processBtn = document.getElementById('processBtn');
-    if (!processBtn) return;
+    const hasInput = manualInputMode ? manualInputContent.trim().length > 0 : (uploadedFile && uploadedFile.length > 0);
+    enableActionButtons(hasInput);
+}
 
-    if (manualInputMode) {
-        processBtn.disabled = manualInputContent.trim().length === 0;
-    } else {
-        processBtn.disabled = !uploadedFile || uploadedFile.length === 0;
+function setProcessMessage(message, type = 'info') {
+    const el = document.getElementById('processMessage');
+    if (!el) return;
+    if (!message) {
+        el.classList.add('hidden');
+        el.textContent = '';
+        el.classList.remove('text-red-400', 'text-fcp-accent', 'text-gray-300');
+        return;
     }
+    el.textContent = message;
+    el.classList.remove('text-red-400', 'text-fcp-accent', 'text-gray-300');
+    if (type === 'error') {
+        el.classList.add('text-red-400');
+    } else if (type === 'info') {
+        el.classList.add('text-fcp-accent');
+    } else {
+        el.classList.add('text-gray-300');
+    }
+    el.classList.remove('hidden');
+}
+
+function hideOutputMenu() {
+    const menu = document.getElementById('outputMenu');
+    const toggle = document.getElementById('outputToggle');
+    if (menu) menu.classList.add('hidden');
+    if (toggle) toggle.setAttribute('aria-expanded', 'false');
+}
+
+function toggleOutputMenu() {
+    const menu = document.getElementById('outputMenu');
+    const toggle = document.getElementById('outputToggle');
+    if (!menu || !toggle || toggle.disabled) return;
+    const isHidden = menu.classList.contains('hidden');
+    if (isHidden) {
+        menu.classList.remove('hidden');
+        toggle.setAttribute('aria-expanded', 'true');
+    } else {
+        hideOutputMenu();
+    }
+}
+
+function setOutputMode(mode) {
+    outputMode = mode === 'copy' ? 'copy' : 'download';
+    hideOutputMenu();
+    updateProcessButtonLabel();
+}
+
+let toastTimeout = null;
+function showToast(message, duration = 3500) {
+    if (!message) return;
+    if (toastTimeout) {
+        clearTimeout(toastTimeout);
+        toastTimeout = null;
+    }
+    let toast = document.getElementById('ek-toast');
+    if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'ek-toast';
+        toast.className = 'fixed bottom-4 right-4 max-w-sm bg-black bg-opacity-80 text-white text-sm rounded-lg shadow-lg border border-fcp-border p-4 z-50';
+        document.body.appendChild(toast);
+    }
+    toast.textContent = message;
+    toast.classList.remove('hidden');
+    toastTimeout = setTimeout(() => {
+        toast.classList.add('hidden');
+    }, duration);
 }
 
 // Process file based on current tool
@@ -619,10 +809,7 @@ function processFile() {
         return;
     }
 
-    // Show processing state
-    const processBtn = document.getElementById('processBtn');
-    processBtn.textContent = 'Processing...';
-    processBtn.disabled = true;
+    setProcessingState(true);
 
     // Route to appropriate processor
     switch(currentTool) {
@@ -649,8 +836,7 @@ function processFile() {
             const offset = parseFloat(document.getElementById('timeOffset').value);
             if (isNaN(offset)) {
                 alert('Please enter a valid time offset');
-                processBtn.textContent = 'Process';
-                processBtn.disabled = false;
+                finishProcessing();
                 return;
             }
             processSrtTimeShift(uploadedFile[0], offset);
@@ -721,5 +907,36 @@ document.addEventListener('DOMContentLoaded', function() {
     window.processFile = processFile;
     window.closeModal = closeModal;
     window.openAudioSync = openAudioSync;
+
+    const outputToggle = document.getElementById('outputToggle');
+    const outputMenu = document.getElementById('outputMenu');
+    if (outputToggle) {
+        outputToggle.addEventListener('click', (e) => {
+            e.preventDefault();
+            toggleOutputMenu();
+        });
+    }
+    if (outputMenu) {
+        outputMenu.querySelectorAll('[data-output]').forEach((btn) => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                const mode = e.currentTarget.getAttribute('data-output');
+                setOutputMode(mode);
+            });
+        });
+    }
+    document.addEventListener('click', (e) => {
+        const toggle = document.getElementById('outputToggle');
+        const menu = document.getElementById('outputMenu');
+        if (!menu || !toggle) return;
+        if (!menu.classList.contains('hidden')) {
+            const withinMenu = menu.contains(e.target);
+            const withinToggle = toggle.contains(e.target);
+            if (!withinMenu && !withinToggle) {
+                hideOutputMenu();
+            }
+        }
+    });
+    updateProcessButtonLabel();
     console.log('Global functions set up');
 });
