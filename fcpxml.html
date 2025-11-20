@@ -212,6 +212,32 @@
         let pythonScriptLoaded = false;
         let manualInputMode = false;
         let manualInputContent = '';
+        const OUTPUT_PATH = '/input.fcpxml';
+        const SCRIPT_VERSION = '2'; // Bump to force fresh fetch when Python interface changes
+        const DEFAULT_MANUAL_PROJECT = 'manual_input';
+        const PROJECT_NAME_LIMIT = 12;
+
+        function normalizeSrtText(text) {
+            // Normalize line endings to avoid parser edge cases from copied content
+            return text.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+        }
+
+        function getProjectName(projectNameInput, manualInputMode, selectedFile) {
+            let name = projectNameInput.trim();
+            if (!name) {
+                if (manualInputMode) {
+                    name = DEFAULT_MANUAL_PROJECT;
+                } else if (selectedFile) {
+                    name = selectedFile.name.replace(/\\.srt$/i, '');
+                } else {
+                    name = 'input';
+                }
+            }
+            if (name.length > PROJECT_NAME_LIMIT) {
+                name = name.slice(0, PROJECT_NAME_LIMIT);
+            }
+            return name;
+        }
 
         // Initialize Pyodide on page load
         async function initPyodide() {
@@ -220,7 +246,7 @@
                 pyodide = await loadPyodide();
 
                 // Load the Python script
-                const response = await fetch('fcpxml/srt2fcpxml.py');
+                const response = await fetch(`fcpxml/srt2fcpxml.py?v=${SCRIPT_VERSION}`);
                 if (!response.ok) {
                     throw new Error('Failed to load srt2fcpxml.py');
                 }
@@ -336,8 +362,17 @@
             showStatus('Converting...', 'info');
 
             try {
+                // Clean up virtual filesystem from previous conversions
+                try {
+                    pyodide.FS.unlink('/input.srt');
+                } catch (e) { /* File doesn't exist, that's fine */ }
+                try {
+                    pyodide.FS.unlink(OUTPUT_PATH);
+                } catch (e) { /* File doesn't exist, that's fine */ }
+
                 // Get SRT content from file or manual input
-                const srtContent = manualInputMode ? manualInputContent : await selectedFile.text();
+                const rawSrtContent = manualInputMode ? manualInputContent : await selectedFile.text();
+                const srtContent = normalizeSrtText(rawSrtContent);
 
                 // Write to virtual filesystem
                 pyodide.FS.writeFile('/input.srt', srtContent);
@@ -348,8 +383,9 @@
                 const resolution = document.getElementById('resolution').value;
                 const [width, height] = resolution.split('x');
                 const yPosition = document.getElementById('yPosition').value;
-                const projectName = document.getElementById('projectName').value;
+                const projectNameInput = document.getElementById('projectName').value;
                 const eventName = document.getElementById('eventName').value;
+                const projectName = getProjectName(projectNameInput, manualInputMode, selectedFile);
 
                 // Build arguments
                 let args = [
@@ -360,25 +396,78 @@
                     '-width', width,
                     '-height', height,
                     '-y', yPosition,
-                    '-event', eventName
+                    '-event', eventName,
+                    '-output', OUTPUT_PATH,
+                    '-project', projectName
                 ];
 
-                // Add project name if specified
-                if (projectName.trim()) {
-                    args.push('-project', projectName);
-                }
+                // Run Python script - wrap in try/catch to handle Python errors
+                try {
+                    const pythonResult = await pyodide.runPythonAsync(`
+import sys, io, json, traceback
+from contextlib import redirect_stdout, redirect_stderr
 
-                // Run Python script
-                await pyodide.runPythonAsync(`
-import sys
 sys.argv = ${JSON.stringify(args)}
 
-# Execute the script
-exec(open('/srt2fcpxml.py').read())
-                `);
+buffer = io.StringIO()
+exit_code = 0
 
-                // Read the output
-                const fcpxmlContent = pyodide.FS.readFile('/input.fcpxml', {encoding: 'utf8'});
+with redirect_stdout(buffer), redirect_stderr(buffer):
+    try:
+        exec(open('/srt2fcpxml.py').read())
+    except SystemExit as e:
+        code = e.code if e.code is not None else 0
+        try:
+            exit_code = int(code)
+        except Exception:
+            exit_code = 1
+    except Exception:
+        exit_code = 1
+        traceback.print_exc()
+
+result = {
+    "exit_code": exit_code,
+    "logs": buffer.getvalue()
+}
+json.dumps(result)
+                    `);
+                    const { exit_code, logs } = JSON.parse(pythonResult);
+
+                    // Surface Python-side errors instead of raw FS errors
+                    if (exit_code !== 0) {
+                        const cleanedLog = logs.trim();
+                        throw new Error(cleanedLog || 'Conversion failed - check your SRT format.');
+                    }
+
+                    // Ensure the output file exists before reading
+                    const outputExists = pyodide.FS.analyzePath(OUTPUT_PATH).exists;
+                    if (!outputExists) {
+                        const cleanedLog = logs.trim();
+                        const extra = cleanedLog ? ` Details: ${cleanedLog}` : '';
+                        throw new Error('Conversion failed: output file was not generated.' + extra);
+                    }
+                } catch (pythonError) {
+                    // Extract meaningful error message from Python error
+                    let errorMsg = 'Unknown error during conversion';
+
+                    // Try to extract RuntimeError message
+                    if (pythonError.message) {
+                        const runtimeErrorMatch = pythonError.message.match(/RuntimeError: (.+?)(?:\n|$)/);
+                        if (runtimeErrorMatch) {
+                            errorMsg = runtimeErrorMatch[1];
+                        } else if (pythonError.message.includes('No valid subtitles')) {
+                            errorMsg = 'No valid subtitles found. Please check your SRT file format.';
+                        } else if (pythonError.message.includes('not found')) {
+                            errorMsg = 'Please select an SRT file or paste SRT content before converting.';
+                        } else {
+                            errorMsg = pythonError.message;
+                        }
+                    }
+                    throw new Error(errorMsg);
+                }
+
+                // Read the output - always from /input.fcpxml
+                const fcpxmlContent = pyodide.FS.readFile(OUTPUT_PATH, {encoding: 'utf8'});
 
                 // Download the result
                 const blob = new Blob([fcpxmlContent], {type: 'application/xml'});
@@ -388,13 +477,7 @@ exec(open('/srt2fcpxml.py').read())
 
                 // Use custom project name, file name, or default
                 let downloadName;
-                if (projectName.trim()) {
-                    downloadName = projectName.trim() + '.fcpxml';
-                } else if (manualInputMode) {
-                    downloadName = 'manual_input.fcpxml';
-                } else {
-                    downloadName = selectedFile.name.replace('.srt', '.fcpxml');
-                }
+                downloadName = projectName + '.fcpxml';
                 a.download = downloadName;
 
                 a.click();

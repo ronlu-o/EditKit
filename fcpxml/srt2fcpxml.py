@@ -367,6 +367,12 @@ def main():
         default='_FCPXMLs',
         help='Event name (default: _FCPXMLs)'
     )
+    parser.add_argument(
+        '-output',
+        type=str,
+        default=None,
+        help='Explicit output path (used by browser/pyodide runtime)'
+    )
 
     args = parser.parse_args()
 
@@ -422,8 +428,20 @@ def main():
         final_xml = xml_declaration + xml_content
 
         # Write output file
-        output_dir = os.path.dirname(os.path.abspath(args.srt))
-        output_file = os.path.join(output_dir, f'{project_name}.fcpxml')
+        # Prefer explicit output path when provided (browser uses this)
+        if args.output:
+            output_file = args.output
+        else:
+            # When running in Pyodide (browser), the virtual FS is under /
+            # and sys.platform is "emscripten". Always write to a stable path
+            # so the JS side knows where to read from, regardless of project name.
+            if os.path.abspath(args.srt) == '/input.srt' or sys.platform == 'emscripten':
+                # Running in Pyodide - always use /input.fcpxml
+                output_file = '/input.fcpxml'
+            else:
+                # Running as CLI - use project name for file
+                input_dir = os.path.dirname(os.path.abspath(args.srt))
+                output_file = os.path.join(input_dir, f'{project_name}.fcpxml')
 
         with open(output_file, 'w', encoding='utf-8') as f:
             f.write(final_xml)
