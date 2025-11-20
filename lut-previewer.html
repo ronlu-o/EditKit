@@ -181,15 +181,17 @@
                 <div class="bg-fcp-gray p-6 rounded-lg border border-fcp-border mb-6">
                     <h3 class="text-lg font-semibold text-fcp-text mb-4">Upload Image</h3>
                     <div id="imageUploadArea" class="border-2 border-dashed border-gray-600 rounded-lg p-6 text-center hover:border-fcp-accent transition-colors cursor-pointer min-h-[200px] flex flex-col justify-center">
-                        <svg class="w-8 h-8 text-fcp-text-secondary mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                        </svg>
-                        <p class="text-fcp-text-secondary text-sm mb-1">Drop your image here or click to browse</p>
-                        <p class="text-xs text-gray-500 mb-3">Supports JPG, PNG, WEBP</p>
-                        <input type="file" id="imageInput" class="hidden" accept="image/*">
-                        <button id="loadSampleImageButton" class="px-4 py-2 bg-fcp-border text-fcp-text text-sm rounded-lg hover:bg-fcp-accent hover:text-white transition-colors">
-                            Load Sample Image
-                        </button>
+                        <div class="flex flex-col items-center justify-center">
+                            <svg class="w-8 h-8 text-fcp-text-secondary -mt-1 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                            </svg>
+                            <p class="text-fcp-text-secondary text-sm leading-tight">Drop your image here or click to browse</p>
+                            <p class="text-xs text-gray-500 leading-tight">Supports JPG, PNG, WEBP</p>
+                            <input type="file" id="imageInput" class="hidden" accept="image/*">
+                            <button id="loadSampleImageButton" class="mt-4 px-4 py-2 bg-fcp-border text-fcp-text text-sm rounded-lg hover:bg-fcp-accent hover:text-white transition-colors">
+                                Load Sample Image
+                            </button>
+                        </div>
                     </div>
                 </div>
 
@@ -222,15 +224,17 @@
                 <div class="bg-fcp-gray p-6 rounded-lg border border-fcp-border">
                     <h3 class="text-lg font-semibold text-fcp-text mb-4">Upload LUT Files</h3>
                     <div id="lutUploadArea" class="border-2 border-dashed border-gray-600 rounded-lg p-6 text-center hover:border-fcp-accent transition-colors cursor-pointer min-h-[200px] flex flex-col justify-center">
-                        <svg class="w-8 h-8 text-fcp-text-secondary mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
-                        </svg>
-                        <p class="text-fcp-text-secondary text-sm mb-1">Drop .cube files here or click to browse</p>
-                        <p class="text-xs text-gray-500 mb-3">Supports multiple files</p>
-                        <input type="file" id="lutInput" class="hidden" accept=".cube" multiple>
-                        <button id="loadSampleLUTButton" class="px-4 py-2 bg-fcp-border text-fcp-text text-sm rounded-lg hover:bg-fcp-accent hover:text-white transition-colors opacity-50 cursor-not-allowed" disabled>
-                            Load Sample LUT
-                        </button>
+                        <div class="flex flex-col items-center justify-center">
+                            <svg class="w-8 h-8 text-fcp-text-secondary -mt-1 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                            </svg>
+                            <p class="text-fcp-text-secondary text-sm leading-tight">Drop or browse .cube files here</p>
+                            <p class="text-xs text-gray-500 leading-tight">Supports multiple files</p>
+                            <input type="file" id="lutInput" class="hidden" accept=".cube" multiple>
+                            <button id="loadSampleLUTButton" class="mt-4 px-4 py-2 bg-fcp-border text-fcp-text text-sm rounded-lg hover:bg-fcp-accent hover:text-white transition-colors opacity-50 cursor-not-allowed" disabled>
+                                Load Sample LUT
+                            </button>
+                        </div>
                     </div>
                 </div>
 
@@ -252,13 +256,33 @@
                     <h3 class="text-lg font-semibold text-fcp-text mb-4">Global Controls</h3>
                     <div class="space-y-4">
                         <div>
-                            <label class="block text-sm font-medium text-gray-300 mb-2">Overall Intensity</label>
+                            <label class="block text-sm font-medium text-gray-300 mb-2">Overall LUT Intensity</label>
                             <input type="range" id="globalIntensity" min="0" max="100" value="100"
                                    class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer slider">
-                            <div class="flex justify-between text-xs text-fcp-text-secondary mt-1">
+                            <div class="flex justify-between items-center text-xs text-fcp-text-secondary mt-1 min-h-[18px]">
                                 <span id="globalIntensityMin">0%</span>
-                                <span id="globalIntensityValue" class="hidden"></span>
+                                <span id="globalIntensityValue" class="inline-block w-12 text-center text-xs font-mono tabular-nums leading-none opacity-0">100%</span>
                                 <span id="globalIntensityMax">100%</span>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-300 mb-2">Brightness</label>
+                            <input type="range" id="globalBrightness" min="50" max="150" value="100"
+                                   class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer slider">
+                            <div class="flex justify-between items-center text-xs text-fcp-text-secondary mt-1 min-h-[18px]">
+                                <span id="globalBrightnessMin">50%</span>
+                                <span id="globalBrightnessValue" class="inline-block w-12 text-center text-xs font-mono tabular-nums leading-none">100%</span>
+                                <span id="globalBrightnessMax">150%</span>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-300 mb-2">Saturation</label>
+                            <input type="range" id="globalSaturation" min="0" max="200" value="100"
+                                   class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer slider">
+                            <div class="flex justify-between items-center text-xs text-fcp-text-secondary mt-1 min-h-[18px]">
+                                <span id="globalSaturationMin">0%</span>
+                                <span id="globalSaturationValue" class="inline-block w-12 text-center text-xs font-mono tabular-nums leading-none">100%</span>
+                                <span id="globalSaturationMax">200%</span>
                             </div>
                         </div>
                     </div>

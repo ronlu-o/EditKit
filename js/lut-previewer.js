@@ -4,6 +4,8 @@ class LUTPreviewer {
         this.processor = new LUTProcessor();
         this.currentImage = null;
         this.globalIntensity = 1.0;
+        this.globalBrightness = 0; // offset -100..100
+        this.globalSaturation = 1.0; // factor 0..2
         this.globalSliderTimeout = null;
         this.initializeElements();
         this.setupEventListeners();
@@ -23,6 +25,10 @@ class LUTPreviewer {
         this.lutList = document.getElementById('lutList');
         this.globalIntensitySlider = document.getElementById('globalIntensity');
         this.globalIntensityValue = document.getElementById('globalIntensityValue');
+        this.globalBrightnessSlider = document.getElementById('globalBrightness');
+        this.globalBrightnessValue = document.getElementById('globalBrightnessValue');
+        this.globalSaturationSlider = document.getElementById('globalSaturation');
+        this.globalSaturationValue = document.getElementById('globalSaturationValue');
         this.resetBtn = document.getElementById('resetBtn');
         this.downloadBtn = document.getElementById('downloadBtn');
 
@@ -67,6 +73,10 @@ class LUTPreviewer {
 
         // Global controls
         this.globalIntensitySlider.addEventListener('input', (e) => this.handleGlobalIntensityChange(e));
+        this.globalBrightnessSlider.addEventListener('input', (e) => this.handleBrightnessChange(e));
+        this.globalSaturationSlider.addEventListener('input', (e) => this.handleSaturationChange(e));
+        this.globalBrightnessSlider.addEventListener('input', (e) => this.handleBrightnessChange(e));
+        this.globalSaturationSlider.addEventListener('input', (e) => this.handleSaturationChange(e));
         this.resetBtn.addEventListener('click', () => this.resetImage());
         this.downloadBtn.addEventListener('click', () => this.downloadImage());
     }
@@ -287,12 +297,34 @@ class LUTPreviewer {
         // Show middle value only between 1-99%
         if (value > 0 && value < 100) {
             this.globalIntensityValue.textContent = `${value}%`;
-            this.globalIntensityValue.classList.remove('hidden');
+            this.globalIntensityValue.classList.remove('opacity-0');
         } else {
-            this.globalIntensityValue.classList.add('hidden');
+            this.globalIntensityValue.classList.add('opacity-0');
         }
 
         // Debounce global intensity slider too
+        clearTimeout(this.globalSliderTimeout);
+        this.globalSliderTimeout = setTimeout(() => {
+            this.processCurrentImage();
+        }, 100);
+    }
+
+    handleBrightnessChange(e) {
+        const value = parseInt(e.target.value);
+        this.globalBrightness = value - 100; // now -50..50 effective
+        this.globalBrightnessValue.textContent = `${value}%`;
+
+        clearTimeout(this.globalSliderTimeout);
+        this.globalSliderTimeout = setTimeout(() => {
+            this.processCurrentImage();
+        }, 100);
+    }
+
+    handleSaturationChange(e) {
+        const value = parseInt(e.target.value);
+        this.globalSaturation = value / 100; // 0..2
+        this.globalSaturationValue.textContent = `${value}%`;
+
         clearTimeout(this.globalSliderTimeout);
         this.globalSliderTimeout = setTimeout(() => {
             this.processCurrentImage();
@@ -312,7 +344,7 @@ class LUTPreviewer {
     processCurrentImage() {
         if (this.currentImage) {
             try {
-                this.processor.processImage(this.globalIntensity);
+                this.processor.processImage(this.globalIntensity, this.globalBrightness, this.globalSaturation);
             } catch (error) {
                 this.showError('Error processing image: ' + error.message);
             }
@@ -323,6 +355,12 @@ class LUTPreviewer {
         this.globalIntensitySlider.value = 100;
         this.globalIntensity = 1.0;
         this.globalIntensityValue.textContent = '100%';
+        this.globalBrightnessSlider.value = 100;
+        this.globalBrightness = 0;
+        this.globalBrightnessValue.textContent = '100%';
+        this.globalSaturationSlider.value = 100;
+        this.globalSaturation = 1.0;
+        this.globalSaturationValue.textContent = '100%';
 
         // Reset all LUT intensities and enable states
         const lutItems = this.lutList.querySelectorAll('[data-filename]');

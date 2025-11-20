@@ -261,14 +261,21 @@ class LUTProcessor {
         );
     }
 
-    // Process current image with active LUTs
-    processImage(globalIntensity = 1.0) {
+    // Process current image with active LUTs and global adjustments
+    processImage(globalIntensity = 1.0, brightnessOffset = 0, saturationFactor = 1.0) {
         if (!this.originalImageData) {
             throw new Error('No image loaded');
         }
 
         const activeLUTs = this.getAllLUTs().filter(lut => lut.enabled);
-        this.currentImageData = this.applyMultipleLUTs(this.originalImageData, activeLUTs, globalIntensity);
+        let result = this.applyMultipleLUTs(this.originalImageData, activeLUTs, globalIntensity);
+
+        // Apply brightness/saturation adjustments
+        if (brightnessOffset !== 0 || saturationFactor !== 1.0) {
+            result = this.applyAdjustments(result, brightnessOffset, saturationFactor);
+        }
+
+        this.currentImageData = result;
 
         // Update canvas
         if (this.ctx) {
@@ -276,6 +283,40 @@ class LUTProcessor {
         }
 
         return this.currentImageData;
+    }
+
+    applyAdjustments(imageData, brightnessOffset = 0, saturationFactor = 1.0) {
+        const data = new Uint8ClampedArray(imageData.data);
+        const length = data.length;
+        const sat = saturationFactor;
+        const bright = brightnessOffset;
+
+        for (let i = 0; i < length; i += 4) {
+            let r = data[i];
+            let g = data[i + 1];
+            let b = data[i + 2];
+
+            // Brightness
+            if (bright !== 0) {
+                r = r + bright;
+                g = g + bright;
+                b = b + bright;
+            }
+
+            // Saturation
+            if (sat !== 1) {
+                const luma = 0.299 * r + 0.587 * g + 0.114 * b;
+                r = luma + (r - luma) * sat;
+                g = luma + (g - luma) * sat;
+                b = luma + (b - luma) * sat;
+            }
+
+            data[i] = Math.min(255, Math.max(0, r));
+            data[i + 1] = Math.min(255, Math.max(0, g));
+            data[i + 2] = Math.min(255, Math.max(0, b));
+        }
+
+        return new ImageData(data, imageData.width, imageData.height);
     }
 
     // Reset to original image

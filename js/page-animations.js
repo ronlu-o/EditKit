@@ -176,13 +176,15 @@ function initSliderAnimations() {
 
     sliders.forEach(slider => {
         slider.addEventListener('input', () => {
+            // Skip the global intensity label on LUT previewer to avoid text jitter
+            // if (slider.id === 'globalIntensity') return;
             // Subtle pulse on slider change
             const label = slider.previousElementSibling || slider.nextElementSibling;
             if (label) {
                 animate(
                     label,
-                    { scale: [1, 1.05, 1] },
-                    { duration: 0.3, easing: 'ease-out' }
+                    { scale: [1, 1.05, 1], transformOrigin: 'left center' },
+                    { duration: 0.28, easing: 'ease-out' }
                 );
             }
         });
