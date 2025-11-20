@@ -72,7 +72,8 @@ function showLrcxTooltip(e) {
     const messageLines = [
         '<span class="font-semibold text-white">Original:</span> Original, non-translated lines only.',
         '<span class="font-semibold text-white">Translations:</span> Translated lyrics lines only.',
-        '<span class="font-semibold text-white">Intelligent:</span> Keep base lyrics if the line is English; keep translated lines if the base line is not English.'
+        '<span class="font-semibold text-white">Intelligent:</span> Keep base lyrics if the line is English;',
+        '&emsp;&emsp;&emsp;&emsp;&emsp;&ensp;&thinsp;Keep translated lines if not.'
     ];
     const existing = document.getElementById('lrcx-tooltip');
     const tooltip = existing || document.createElement('div');

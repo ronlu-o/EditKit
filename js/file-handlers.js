@@ -8,7 +8,15 @@ function handleFileUpload(files) {
     }
 
     uploadedFile = files;
-    document.getElementById('processBtn').disabled = false;
+    if (typeof setManualInputToggleEnabled === 'function') {
+        setManualInputToggleEnabled(false);
+    }
+    if (typeof enableActionButtons === 'function') {
+        enableActionButtons(true);
+    } else {
+        const processBtn = document.getElementById('processBtn');
+        if (processBtn) processBtn.disabled = false;
+    }
 
     if (typeof updateProcessButtonState === 'function') {
         updateProcessButtonState();
@@ -119,17 +127,58 @@ function reorderFiles(fromIndex, toIndex) {
     showFileList(uploadedFile);
 }
 
-// Download file utility
-function downloadFile(content, filename, mimeType) {
-    const blob = new Blob([content], { type: mimeType });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+// Download or copy result utility
+async function downloadFile(content, filename, mimeType) {
+    // Guard against empty output
+    if (!content || (typeof content === 'string' && content.trim().length === 0)) {
+        if (typeof setProcessMessage === 'function') {
+            setProcessMessage('Either your file was empty or it has an error. Nothing was exported in this run.', 'error');
+        }
+        if (typeof finishProcessing === 'function') finishProcessing();
+        return false;
+    }
+
+    const mode = (typeof outputMode !== 'undefined') ? outputMode : 'download';
+    const resetButtons = () => {
+        if (typeof finishProcessing === 'function') {
+            finishProcessing();
+        } else if (typeof enableActionButtons === 'function') {
+            enableActionButtons(true);
+        }
+    };
+
+    const performDownload = () => {
+        const blob = new Blob([content], { type: mimeType });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+
+        if (typeof setProcessMessage === 'function') {
+            setProcessMessage('');
+        }
+    };
+
+    if (mode === 'copy' && navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+        try {
+            await navigator.clipboard.writeText(content);
+            if (typeof showCopySuccess === 'function') {
+                showCopySuccess();
+            }
+            resetButtons();
+            return true;
+        } catch (err) {
+            console.error('Clipboard copy failed, falling back to download.', err);
+        }
+    }
+
+    performDownload();
+    resetButtons();
+    return true;
 }
 
 // Set up drag and drop event listeners

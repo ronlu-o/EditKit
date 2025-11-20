@@ -7,16 +7,15 @@ async function processLrcToSrt(file) {
         try {
             const content = e.target.result;
             const srtContent = convertLrcToSrt(content);
-            downloadFile(srtContent, file.name.replace(/\.[^/.]+$/, ".srt"), 'text/plain');
-            closeModal();
-        } catch (error) {
-            console.error('Conversion error:', error);
-            alert('Error converting file: ' + error.message);
-            document.getElementById('processBtn').textContent = 'Process';
-            document.getElementById('processBtn').disabled = false;
-        }
-    };
-    reader.readAsText(file);
+        const success = await downloadFile(srtContent, file.name.replace(/\.[^/.]+$/, ".srt"), 'text/plain');
+        if (success) closeModal();
+    } catch (error) {
+        console.error('Conversion error:', error);
+        alert('Error converting file: ' + error.message);
+        if (typeof finishProcessing === 'function') finishProcessing();
+    }
+};
+reader.readAsText(file);
 }
 
 // Process LRCX to SRT conversion
@@ -26,31 +25,26 @@ async function processLrcxToSrt(file) {
         try {
             const content = e.target.result;
             const srtContent = await convertWithPython(content, 'lrcx-to-srt', { mode: lrcxConversionMode });
-            downloadFile(srtContent, file.name.replace(/\.[^/.]+$/, ".srt"), 'text/plain');
-            closeModal();
-        } catch (error) {
-            console.error('Conversion error:', error);
-            alert('Error converting file: ' + error.message);
-            document.getElementById('processBtn').textContent = 'Process';
-            document.getElementById('processBtn').disabled = false;
-        }
-    };
-    reader.readAsText(file);
+        const success = await downloadFile(srtContent, file.name.replace(/\.[^/.]+$/, ".srt"), 'text/plain');
+        if (success) closeModal();
+    } catch (error) {
+        console.error('Conversion error:', error);
+        alert('Error converting file: ' + error.message);
+        if (typeof finishProcessing === 'function') finishProcessing();
+    }
+};
+reader.readAsText(file);
 }
 
 async function processLrcxTextToSrt(content) {
     try {
         const srtContent = await convertWithPython(content, 'lrcx-to-srt', { mode: lrcxConversionMode });
-        downloadFile(srtContent, 'manual_input.srt', 'text/plain');
-        closeModal();
+        const success = await downloadFile(srtContent, 'manual_input.srt', 'text/plain');
+        if (success) closeModal();
     } catch (error) {
         console.error('Conversion error:', error);
         alert('Error converting text: ' + error.message);
-        const processBtn = document.getElementById('processBtn');
-        if (processBtn) {
-            processBtn.textContent = 'Process';
-            processBtn.disabled = false;
-        }
+        if (typeof finishProcessing === 'function') finishProcessing();
     }
 }
 
@@ -61,32 +55,27 @@ async function processVttToSrt(file) {
         try {
             const content = e.target.result;
             const srtContent = await convertWithPython(content, 'vtt-to-srt');
-            downloadFile(srtContent, file.name.replace(/\.[^/.]+$/, ".srt"), 'text/plain');
-            closeModal();
-        } catch (error) {
-            console.error('Conversion error:', error);
-            alert('Error converting file: ' + error.message);
-            document.getElementById('processBtn').textContent = 'Process';
-            document.getElementById('processBtn').disabled = false;
-        }
-    };
-    reader.readAsText(file);
+        const success = await downloadFile(srtContent, file.name.replace(/\.[^/.]+$/, ".srt"), 'text/plain');
+        if (success) closeModal();
+    } catch (error) {
+        console.error('Conversion error:', error);
+        alert('Error converting file: ' + error.message);
+        if (typeof finishProcessing === 'function') finishProcessing();
+    }
+};
+reader.readAsText(file);
 }
 
 // Process VTT to SRT from manual text input
 async function processVttToSrtText(content) {
     try {
         const srtContent = await convertWithPython(content, 'vtt-to-srt');
-        downloadFile(srtContent, 'manual_input.srt', 'text/plain');
-        closeModal();
+        const success = await downloadFile(srtContent, 'manual_input.srt', 'text/plain');
+        if (success) closeModal();
     } catch (error) {
         console.error('Conversion error:', error);
         alert('Error converting text: ' + error.message);
-        const processBtn = document.getElementById('processBtn');
-        if (processBtn) {
-            processBtn.textContent = 'Process';
-            processBtn.disabled = false;
-        }
+        if (typeof finishProcessing === 'function') finishProcessing();
     }
 }
 
@@ -97,13 +86,12 @@ async function processSrtTimeShift(file, offset) {
         try {
             const content = e.target.result;
             const srtContent = await convertWithPython(content, 'srt-time-shift', { offset });
-            downloadFile(srtContent, file.name.replace(/\.[^/.]+$/, "_shifted.srt"), 'text/plain');
-            closeModal();
+            const success = await downloadFile(srtContent, file.name.replace(/\.[^/.]+$/, "_shifted.srt"), 'text/plain');
+            if (success) closeModal();
         } catch (error) {
             console.error('Conversion error:', error);
             alert('Error processing file: ' + error.message);
-            document.getElementById('processBtn').textContent = 'Process';
-            document.getElementById('processBtn').disabled = false;
+            if (typeof finishProcessing === 'function') finishProcessing();
         }
     };
     reader.readAsText(file);
@@ -113,16 +101,12 @@ async function processSrtTimeShift(file, offset) {
 async function processSrtTimeShiftText(content, offset) {
     try {
         const srtContent = await convertWithPython(content, 'srt-time-shift', { offset });
-        downloadFile(srtContent, 'manual_input_shifted.srt', 'text/plain');
-        closeModal();
+        const success = await downloadFile(srtContent, 'manual_input_shifted.srt', 'text/plain');
+        if (success) closeModal();
     } catch (error) {
         console.error('Conversion error:', error);
         alert('Error processing text: ' + error.message);
-        const processBtn = document.getElementById('processBtn');
-        if (processBtn) {
-            processBtn.textContent = 'Process';
-            processBtn.disabled = false;
-        }
+        if (typeof finishProcessing === 'function') finishProcessing();
     }
 }
 
@@ -172,14 +156,13 @@ async function processSrtMerger(files) {
 
         // Download merged file
         const mergedFileName = `merged_${files.length}_subtitles.srt`;
-        downloadFile(mergedSrtContent, mergedFileName, 'text/plain');
-        closeModal();
+        const success = await downloadFile(mergedSrtContent, mergedFileName, 'text/plain');
+        if (success) closeModal();
 
     } catch (error) {
         console.error('Merge error:', error);
         alert('Error merging files: ' + error.message);
-        document.getElementById('processBtn').textContent = 'Process';
-        document.getElementById('processBtn').disabled = false;
+        if (typeof finishProcessing === 'function') finishProcessing();
     }
 }
 
@@ -204,13 +187,12 @@ async function processSrtCleaner(file) {
             };
 
             const cleanedContent = cleanSrtFile(content, options);
-            downloadFile(cleanedContent, file.name.replace(/\.[^/.]+$/, "_cleaned.srt"), 'text/plain');
-            closeModal();
+            const success = await downloadFile(cleanedContent, file.name.replace(/\.[^/.]+$/, "_cleaned.srt"), 'text/plain');
+            if (success) closeModal();
         } catch (error) {
             console.error('Cleaning error:', error);
             alert('Error cleaning file: ' + error.message);
-            document.getElementById('processBtn').textContent = 'Process';
-            document.getElementById('processBtn').disabled = false;
+            if (typeof finishProcessing === 'function') finishProcessing();
         }
     };
     reader.readAsText(file);
@@ -233,16 +215,12 @@ async function processSrtCleanerText(content) {
         };
 
         const cleanedContent = cleanSrtFile(content, options);
-        downloadFile(cleanedContent, 'manual_input_cleaned.srt', 'text/plain');
-        closeModal();
+        const success = await downloadFile(cleanedContent, 'manual_input_cleaned.srt', 'text/plain');
+        if (success) closeModal();
     } catch (error) {
         console.error('Cleaning error:', error);
         alert('Error cleaning text: ' + error.message);
-        const processBtn = document.getElementById('processBtn');
-        if (processBtn) {
-            processBtn.textContent = 'Process';
-            processBtn.disabled = false;
-        }
+        if (typeof finishProcessing === 'function') finishProcessing();
     }
 }
 
@@ -253,13 +231,12 @@ async function processBccToSrt(file) {
         try {
             const content = e.target.result;
             const srtContent = await convertWithPython(content, 'bcc-to-srt');
-            downloadFile(srtContent, file.name.replace(/\.[^/.]+$/, ".srt"), 'text/plain');
-            closeModal();
+            const success = await downloadFile(srtContent, file.name.replace(/\.[^/.]+$/, ".srt"), 'text/plain');
+            if (success) closeModal();
         } catch (error) {
             console.error('Conversion error:', error);
             alert('Error converting BCC file: ' + error.message);
-            document.getElementById('processBtn').textContent = 'Process';
-            document.getElementById('processBtn').disabled = false;
+            if (typeof finishProcessing === 'function') finishProcessing();
         }
     };
     reader.readAsText(file);
@@ -274,13 +251,12 @@ async function processLrcxCleaner(file) {
             const cleanedContent = cleanLrcxContent(content);
 
             const extension = file.name.split('.').pop();
-            downloadFile(cleanedContent, file.name.replace(/\.[^/.]+$/, `_cleaned.${extension}`), 'text/plain');
-            closeModal();
+            const success = await downloadFile(cleanedContent, file.name.replace(/\.[^/.]+$/, `_cleaned.${extension}`), 'text/plain');
+            if (success) closeModal();
         } catch (error) {
             console.error('Processing error:', error);
             alert('Error processing file: ' + error.message);
-            document.getElementById('processBtn').textContent = 'Process';
-            document.getElementById('processBtn').disabled = false;
+            if (typeof finishProcessing === 'function') finishProcessing();
         }
     };
     reader.readAsText(file);
@@ -290,16 +266,12 @@ async function processLrcxCleaner(file) {
 async function processLrcxCleanerText(content) {
     try {
         const cleanedContent = cleanLrcxContent(content);
-        downloadFile(cleanedContent, 'manual_input_cleaned.lrcx', 'text/plain');
-        closeModal();
+        const success = await downloadFile(cleanedContent, 'manual_input_cleaned.lrcx', 'text/plain');
+        if (success) closeModal();
     } catch (error) {
         console.error('Processing error:', error);
         alert('Error processing text: ' + error.message);
-        const processBtn = document.getElementById('processBtn');
-        if (processBtn) {
-            processBtn.textContent = 'Process';
-            processBtn.disabled = false;
-        }
+        if (typeof finishProcessing === 'function') finishProcessing();
     }
 }
 
@@ -350,13 +322,12 @@ async function processSrtLineSplitter(file) {
             const content = e.target.result;
             const maxChars = parseInt(document.getElementById('maxCharsPerLine')?.value || '40');
             const splitContent = processSrtLineSplit(content, maxChars);
-            downloadFile(splitContent, file.name.replace(/\.[^/.]+$/, "_split.srt"), 'text/plain');
-            closeModal();
+            const success = await downloadFile(splitContent, file.name.replace(/\.[^/.]+$/, "_split.srt"), 'text/plain');
+            if (success) closeModal();
         } catch (error) {
             console.error('Processing error:', error);
             alert('Error processing file: ' + error.message);
-            document.getElementById('processBtn').textContent = 'Process';
-            document.getElementById('processBtn').disabled = false;
+            if (typeof finishProcessing === 'function') finishProcessing();
         }
     };
     reader.readAsText(file);
@@ -367,16 +338,12 @@ async function processSrtLineSplitterText(content) {
     try {
         const maxChars = parseInt(document.getElementById('maxCharsPerLine')?.value || '40');
         const splitContent = processSrtLineSplit(content, maxChars);
-        downloadFile(splitContent, 'manual_input_split.srt', 'text/plain');
-        closeModal();
+        const success = await downloadFile(splitContent, 'manual_input_split.srt', 'text/plain');
+        if (success) closeModal();
     } catch (error) {
         console.error('Processing error:', error);
         alert('Error processing text: ' + error.message);
-        const processBtn = document.getElementById('processBtn');
-        if (processBtn) {
-            processBtn.textContent = 'Process';
-            processBtn.disabled = false;
-        }
+        if (typeof finishProcessing === 'function') finishProcessing();
     }
 }
 
@@ -475,13 +442,12 @@ async function processSubtitleTextExtractor(file) {
                 }
             }
 
-            downloadFile(extractedText, file.name.replace(/\.[^/.]+$/, ".txt"), 'text/plain');
-            closeModal();
+            const success = await downloadFile(extractedText, file.name.replace(/\.[^/.]+$/, ".txt"), 'text/plain');
+            if (success) closeModal();
         } catch (error) {
             console.error('Extraction error:', error);
             alert('Error extracting text: ' + error.message);
-            document.getElementById('processBtn').textContent = 'Process';
-            document.getElementById('processBtn').disabled = false;
+            if (typeof finishProcessing === 'function') finishProcessing();
         }
     };
     reader.readAsText(file);
@@ -547,15 +513,11 @@ async function processSubtitleTextExtractorText(content) {
             }
         }
 
-        downloadFile(extractedText, 'manual_input.txt', 'text/plain');
-        closeModal();
+        const success = await downloadFile(extractedText, 'manual_input.txt', 'text/plain');
+        if (success) closeModal();
     } catch (error) {
         console.error('Extraction error:', error);
         alert('Error extracting text: ' + error.message);
-        const processBtn = document.getElementById('processBtn');
-        if (processBtn) {
-            processBtn.textContent = 'Process';
-            processBtn.disabled = false;
-        }
+        if (typeof finishProcessing === 'function') finishProcessing();
     }
 }
