@@ -146,17 +146,7 @@ function initHoverEffects() {
 
     // Navigation link hover effects - removed, handled by CSS hover:scale-105
 
-    // Logo hover effect
-    const logo = document.querySelector('nav a.flex');
-    if (logo) {
-        const logoImg = logo.querySelector('img');
-
-        logo.addEventListener('mouseenter', () => {
-            if (logoImg) {
-                animate(logoImg, { rotate: 360 }, { duration: 0.6, easing: 'ease-in-out' });
-            }
-        });
-    }
+    // Logo hover effect - removed (logo uses CSS rotate-3 only)
 
     // GitHub link hover effect
     const githubLink = document.querySelector('footer a[href*="github"]');
