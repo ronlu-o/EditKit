@@ -138,7 +138,8 @@ async function downloadFile(content, filename, mimeType) {
         return false;
     }
 
-    const mode = (typeof outputMode !== 'undefined') ? outputMode : 'download';
+    const mode = (typeof window.outputMode !== 'undefined') ? window.outputMode : 'download';
+    console.log('downloadFile called with mode:', mode); // Debug
     const resetButtons = () => {
         if (typeof finishProcessing === 'function') {
             finishProcessing();
@@ -147,7 +148,7 @@ async function downloadFile(content, filename, mimeType) {
         }
     };
 
-    const performDownload = () => {
+    const performDownload = (showSuccessToast = true) => {
         const blob = new Blob([content], { type: mimeType });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -161,22 +162,64 @@ async function downloadFile(content, filename, mimeType) {
         if (typeof setProcessMessage === 'function') {
             setProcessMessage('');
         }
+
+        // Show download success toast only if requested (not when falling back from clipboard failure)
+        if (showSuccessToast && typeof showToast === 'function') {
+            showToast('✓ Download started');
+        }
     };
+
+    console.log('Clipboard available?', !!navigator.clipboard);
+    console.log('Clipboard.writeText available?', !!(navigator.clipboard && navigator.clipboard.writeText));
 
     if (mode === 'copy' && navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
         try {
+            console.log('Attempting to write to clipboard...');
             await navigator.clipboard.writeText(content);
+            console.log('Clipboard write successful!');
             if (typeof showCopySuccess === 'function') {
                 showCopySuccess();
+            }
+            // Reset outputMode after successful copy
+            if (typeof window.outputMode !== 'undefined') {
+                window.outputMode = 'download';
             }
             resetButtons();
             return true;
         } catch (err) {
             console.error('Clipboard copy failed, falling back to download.', err);
+            if (typeof showToast === 'function') {
+                showToast('⚠ Clipboard access denied. Use HTTPS or localhost. Downloading instead...');
+            }
+            // Fall back to download WITHOUT showing success toast (error toast already explains what's happening)
+            performDownload(false);
+            if (typeof window.outputMode !== 'undefined') {
+                window.outputMode = 'download';
+            }
+            resetButtons();
+            return false;
         }
+    } else if (mode === 'copy') {
+        // Clipboard API not available
+        console.log('Clipboard API not available - likely due to insecure context');
+        if (typeof showToast === 'function') {
+            showToast('⚠ Clipboard requires HTTPS or localhost. Downloading instead...');
+        }
+        // Fall back to download WITHOUT showing success toast
+        performDownload(false);
+        if (typeof window.outputMode !== 'undefined') {
+            window.outputMode = 'download';
+        }
+        resetButtons();
+        return false;
     }
 
-    performDownload();
+    // Normal download mode
+    performDownload(true);
+    // Reset outputMode after download
+    if (typeof window.outputMode !== 'undefined') {
+        window.outputMode = 'download';
+    }
     resetButtons();
     return true;
 }

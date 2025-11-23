@@ -5,14 +5,16 @@ let uploadedFile = null;
 let manualInputMode = false;
 let manualInputContent = '';
 let lrcxConversionMode = 'intelligent';
-let outputMode = 'download';
+
+// Make outputMode globally accessible so file-handlers.js can read it
+window.outputMode = 'download';
 
 const PROCESS_LABEL = 'Process';
 
 function updateProcessButtonLabel() {
     const processBtn = document.getElementById('processBtn');
     if (!processBtn) return;
-    processBtn.textContent = PROCESS_LABEL;
+    processBtn.textContent = 'Process';
 }
 
 function setProcessingState(isProcessing) {
@@ -28,22 +30,23 @@ function setProcessingState(isProcessing) {
         if (outputToggle) outputToggle.disabled = true;
     } else {
         if (processBtn) {
-            processBtn.textContent = PROCESS_LABEL;
-            processBtn.disabled = true;
+            updateProcessButtonLabel();
+            // Don't change disabled state - let enableActionButtons handle it
         }
-        if (outputToggle) outputToggle.disabled = true;
+        // Don't change outputToggle disabled state - let enableActionButtons handle it
     }
 }
 
 function enableActionButtons(enable) {
     const processBtn = document.getElementById('processBtn');
     const outputToggle = document.getElementById('outputToggle');
+
     if (processBtn) processBtn.disabled = !enable;
     if (outputToggle) outputToggle.disabled = !enable;
 }
 
 function finishProcessing() {
-    outputMode = 'download';
+    // Don't reset outputMode here - let downloadFile handle the reset after completion
     enableActionButtons(true);
     updateProcessButtonLabel();
 }
@@ -62,6 +65,7 @@ function showCopySuccess() {
     if (!processBtn) return;
     const original = processBtn.textContent;
     processBtn.textContent = 'Copied!';
+    showToast('✓ Copied to clipboard');
     setTimeout(() => {
         updateProcessButtonLabel();
     }, 900);
@@ -118,7 +122,7 @@ function openTool(toolType) {
     setManualInputToggleEnabled(true);
     setProcessingState(false);
     hideOutputMenu();
-    outputMode = 'download';
+    window.outputMode = 'download';
     updateProcessButtonLabel();
     setProcessMessage('');
     additionalOptions.classList.add('hidden');
@@ -522,7 +526,7 @@ function closeModal() {
     uploadedFile = null;
     manualInputMode = false;
     manualInputContent = '';
-    outputMode = 'download';
+    window.outputMode = 'download';
     hideOutputMenu();
     setProcessMessage('');
     setManualInputToggleEnabled(true);
@@ -763,7 +767,10 @@ function hideOutputMenu() {
 function toggleOutputMenu() {
     const menu = document.getElementById('outputMenu');
     const toggle = document.getElementById('outputToggle');
-    if (!menu || !toggle || toggle.disabled) return;
+    if (!menu || !toggle) return;
+
+    if (toggle.disabled) return;
+
     const isHidden = menu.classList.contains('hidden');
     if (isHidden) {
         menu.classList.remove('hidden');
@@ -774,9 +781,12 @@ function toggleOutputMenu() {
 }
 
 function setOutputMode(mode) {
-    outputMode = mode === 'copy' ? 'copy' : 'download';
+    window.outputMode = mode === 'copy' ? 'copy' : 'download';
+    console.log('Output mode set to:', window.outputMode); // Debug
     hideOutputMenu();
-    updateProcessButtonLabel();
+
+    // Immediately trigger processing
+    processFile();
 }
 
 let toastTimeout = null;
@@ -790,13 +800,20 @@ function showToast(message, duration = 3500) {
     if (!toast) {
         toast = document.createElement('div');
         toast.id = 'ek-toast';
-        toast.className = 'fixed bottom-4 right-4 max-w-sm bg-black bg-opacity-80 text-white text-sm rounded-lg shadow-lg border border-fcp-border p-4 z-50';
+        toast.className = 'fixed bottom-4 right-4 max-w-sm bg-black bg-opacity-80 backdrop-blur-sm text-white text-sm rounded-lg shadow-lg border border-fcp-border p-4 z-50 transition-opacity duration-300';
+        toast.style.opacity = '0';
         document.body.appendChild(toast);
     }
     toast.textContent = message;
-    toast.classList.remove('hidden');
+
+    // Fade in
+    requestAnimationFrame(() => {
+        toast.style.opacity = '1';
+    });
+
+    // Fade out after duration
     toastTimeout = setTimeout(() => {
-        toast.classList.add('hidden');
+        toast.style.opacity = '0';
     }, duration);
 }
 
@@ -900,7 +917,6 @@ function openAudioSync() {
 
 // Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOM loaded, setting up drag and drop');
     setupDragAndDrop();
 
     // Make sure openTool is globally available
@@ -914,6 +930,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (outputToggle) {
         outputToggle.addEventListener('click', (e) => {
             e.preventDefault();
+            e.stopPropagation(); // Prevent event from bubbling to document listener
             toggleOutputMenu();
         });
     }
@@ -921,6 +938,7 @@ document.addEventListener('DOMContentLoaded', function() {
         outputMenu.querySelectorAll('[data-output]').forEach((btn) => {
             btn.addEventListener('click', (e) => {
                 e.preventDefault();
+                e.stopPropagation(); // Prevent event from bubbling to document listener
                 const mode = e.currentTarget.getAttribute('data-output');
                 setOutputMode(mode);
             });
@@ -939,5 +957,4 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     updateProcessButtonLabel();
-    console.log('Global functions set up');
 });
