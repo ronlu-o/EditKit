@@ -127,6 +127,37 @@
 
         <!-- Tool Grid -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 py-4">
+
+            <!-- AI Transcription — full first row -->
+            <a href="whisper-asr.html" class="col-span-full bg-fcp-gray border border-fcp-accent/30 hover:border-fcp-accent rounded-lg p-6 transition-all group flex items-center gap-6 no-underline">
+                <div class="w-16 h-16 bg-fcp-accent rounded-lg flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
+                    <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-7a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path>
+                    </svg>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <div class="flex items-center gap-3 mb-1">
+                        <h3 class="text-xl font-semibold text-fcp-text">Audio Transcription</h3>
+                        <span class="text-xs bg-fcp-accent/20 text-fcp-accent px-2 py-0.5 rounded-full border border-fcp-accent/30 whitespace-nowrap">Whisper ASR</span>
+                    </div>
+                    <p class="text-fcp-text-secondary text-sm mb-3">Automatically generate accurate subtitles from any audio or video file using OpenAI Whisper — runs entirely in your browser .</p>
+                    <div class="flex flex-wrap items-center gap-x-5 gap-y-1 text-xs text-fcp-text-secondary">
+                        <span class="flex items-center gap-1.5">
+                            <svg class="w-3.5 h-3.5 text-fcp-success flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
+                            Word-level timestamps
+                        </span>
+                        <span class="flex items-center gap-1.5">
+                            <svg class="w-3.5 h-3.5 text-fcp-success flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
+                            Runs offline in your browser
+                        </span>
+                    </div>
+                </div>
+                <div class="flex items-center gap-1.5 text-fcp-accent text-sm flex-shrink-0">
+                    <span>Open tool</span>
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                </div>
+            </a>
+
             <!-- LRCX to SRT Converter -->
             <div class="bg-fcp-gray p-6 rounded-lg border border-fcp-border hover:border-fcp-accent transition-all cursor-pointer group flex flex-col h-full" onclick="openTool('lrcx-to-srt')">
                 <div class="w-16 h-16 bg-fcp-accent rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">

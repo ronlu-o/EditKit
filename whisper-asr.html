@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Transcription - EditKit</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon_io/favicon-32x32.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'fcp-dark':           '#1C1C1E',
+                        'fcp-gray':           '#2A2A2D',
+                        'fcp-border':         '#3A3A3E',
+                        'fcp-text':           '#F2F2F7',
+                        'fcp-text-secondary': '#A1A1AA',
+                        'fcp-accent':         '#0A84FF',
+                        'fcp-success':        '#30D158',
+                        'fcp-destructive':    '#FF453A',
+                    },
+                    fontFamily: {
+                        'sans': ['Poppins', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Progress bar animation */
+        @keyframes indeterminate {
+            0%   { transform: translateX(-100%); }
+            100% { transform: translateX(400%); }
+        }
+        .progress-indeterminate {
+            animation: indeterminate 1.4s ease-in-out infinite;
+            width: 25%;
+        }
+
+        /* Waveform bars */
+        @keyframes wave {
+            0%, 100% { transform: scaleY(0.4); }
+            50%       { transform: scaleY(1); }
+        }
+        .wave-bar { transform-origin: bottom; }
+        .wave-bar:nth-child(1) { animation: wave 1s ease-in-out infinite 0s; }
+        .wave-bar:nth-child(2) { animation: wave 1s ease-in-out infinite 0.1s; }
+        .wave-bar:nth-child(3) { animation: wave 1s ease-in-out infinite 0.2s; }
+        .wave-bar:nth-child(4) { animation: wave 1s ease-in-out infinite 0.3s; }
+        .wave-bar:nth-child(5) { animation: wave 1s ease-in-out infinite 0.4s; }
+    </style>
+</head>
+<body class="bg-fcp-dark text-fcp-text font-sans min-h-screen flex flex-col">
+
+    <!-- Header -->
+    <header class="bg-fcp-gray border-b border-fcp-border flex-shrink-0">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <div class="flex items-center justify-between gap-4">
+                <div class="flex items-center gap-4 min-w-0">
+                    <a href="subtitles.html" class="text-fcp-accent hover:text-blue-300 transition-colors text-sm whitespace-nowrap flex items-center gap-1">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                        Back to Subtitle Tools
+                    </a>
+                    <div class="w-px h-5 bg-fcp-border flex-shrink-0"></div>
+                    <h1 class="text-lg font-semibold truncate">
+                        <span class="text-fcp-text">AI Audio</span>
+                        <span class="text-fcp-accent"> Transcription</span>
+                    </h1>
+                </div>
+                <button id="downloadBtn"
+                    class="bg-fcp-accent text-white px-4 py-2 rounded text-sm font-medium hover:bg-opacity-80 transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex-shrink-0"
+                    disabled>
+                    Download SRT
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main -->
+    <main class="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+        <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
+
+            <!-- Left column: upload + settings -->
+            <div class="lg:col-span-2 flex flex-col gap-5">
+
+                <!-- Audio upload -->
+                <div class="bg-fcp-gray rounded-lg border border-fcp-border p-5">
+                    <h2 class="text-sm font-semibold text-fcp-text-secondary uppercase tracking-wider mb-4">Audio / Video File</h2>
+                    <div id="uploadArea"
+                        class="border-2 border-dashed border-fcp-border rounded-lg p-8 text-center cursor-pointer hover:border-fcp-accent transition-colors flex flex-col items-center justify-center gap-3 min-h-[160px]">
+                        <!-- idle state -->
+                        <div id="uploadIdle">
+                            <svg class="w-10 h-10 text-fcp-text-secondary mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path>
+                            </svg>
+                            <p class="text-fcp-text-secondary text-sm">Drop an audio or video file here</p>
+                            <p class="text-fcp-text-secondary text-xs opacity-60">MP3 · WAV · M4A · MP4 · MOV · and more</p>
+                        </div>
+                        <!-- loaded state (hidden initially) -->
+                        <div id="uploadLoaded" class="hidden w-full">
+                            <div class="flex items-center gap-3">
+                                <div class="w-9 h-9 bg-fcp-accent/20 rounded-lg flex items-center justify-center flex-shrink-0">
+                                    <svg class="w-5 h-5 text-fcp-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path></svg>
+                                </div>
+                                <div class="min-w-0 text-left">
+                                    <p id="uploadedFilename" class="text-sm font-medium text-fcp-text truncate"></p>
+                                    <p id="uploadedFilemeta" class="text-xs text-fcp-text-secondary"></p>
+                                </div>
+                                <button id="clearFile" class="ml-auto text-fcp-text-secondary hover:text-fcp-destructive transition-colors flex-shrink-0">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                </button>
+                            </div>
+                        </div>
+                        <input type="file" id="fileInput" class="hidden"
+                            accept="audio/*,video/*,.mp3,.wav,.m4a,.mp4,.mov,.aac,.ogg,.flac,.webm">
+                    </div>
+                </div>
+
+                <!-- Settings -->
+                <div class="bg-fcp-gray rounded-lg border border-fcp-border p-5">
+                    <h2 class="text-sm font-semibold text-fcp-text-secondary uppercase tracking-wider mb-4">Settings</h2>
+                    <div class="flex flex-col gap-4">
+
+                        <!-- Language -->
+                        <div>
+                            <label class="block text-sm font-medium text-fcp-text mb-1.5">Language</label>
+                            <select id="languageSelect"
+                                class="w-full bg-fcp-dark border border-fcp-border rounded px-3 py-2 text-sm text-fcp-text focus:outline-none focus:border-fcp-accent">
+                                <option value="auto">Auto-detect</option>
+                                <option value="en">English</option>
+                                <option value="zh">Chinese</option>
+                                <option value="ja">Japanese</option>
+                                <option value="ko">Korean</option>
+                                <option value="es">Spanish</option>
+                                <option value="fr">French</option>
+                                <option value="de">German</option>
+                                <option value="it">Italian</option>
+                                <option value="pt">Portuguese</option>
+                                <option value="ru">Russian</option>
+                                <option value="ar">Arabic</option>
+                                <option value="hi">Hindi</option>
+                            </select>
+                        </div>
+
+                        <!-- Model size -->
+                        <div>
+                            <label class="block text-sm font-medium text-fcp-text mb-1.5">Model Size</label>
+                            <div class="flex flex-col gap-2">
+                                <label class="flex items-start gap-3 cursor-pointer">
+                                    <input type="radio" name="model" value="tiny" class="mt-0.5 accent-fcp-accent">
+                                    <div>
+                                        <span class="text-sm text-fcp-text font-medium">Tiny</span>
+                                        <span class="text-xs text-fcp-text-secondary block">~40 MB · fastest · lower accuracy</span>
+                                    </div>
+                                </label>
+                                <label class="flex items-start gap-3 cursor-pointer">
+                                    <input type="radio" name="model" value="base" class="mt-0.5 accent-fcp-accent" checked>
+                                    <div>
+                                        <span class="text-sm text-fcp-text font-medium">Base</span>
+                                        <span class="text-xs text-fcp-text-secondary block">~75 MB · good balance · recommended</span>
+                                    </div>
+                                </label>
+                                <label class="flex items-start gap-3 cursor-pointer">
+                                    <input type="radio" name="model" value="small" class="mt-0.5 accent-fcp-accent">
+                                    <div>
+                                        <span class="text-sm text-fcp-text font-medium">Small</span>
+                                        <span class="text-xs text-fcp-text-secondary block">~250 MB · higher accuracy · slower</span>
+                                    </div>
+                                </label>
+                                <label class="flex items-start gap-3 cursor-pointer">
+                                    <input type="radio" name="model" value="medium" class="mt-0.5 accent-fcp-accent">
+                                    <div>
+                                        <span class="text-sm text-fcp-text font-medium">Medium</span>
+                                        <span class="text-xs text-fcp-text-secondary block">~770 MB · best accuracy · slow</span>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Output format -->
+                        <div>
+                            <label class="block text-sm font-medium text-fcp-text mb-1.5">Output Format</label>
+                            <select id="formatSelect"
+                                class="w-full bg-fcp-dark border border-fcp-border rounded px-3 py-2 text-sm text-fcp-text focus:outline-none focus:border-fcp-accent">
+                                <option value="srt">SRT</option>
+                                <option value="vtt">WebVTT</option>
+                                <option value="txt">Plain text</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Transcribe button -->
+                <button id="transcribeBtn"
+                    class="w-full bg-fcp-accent text-white py-3 rounded-lg font-semibold text-sm hover:bg-opacity-80 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                    disabled>
+                    Generate Subtitles
+                </button>
+            </div>
+
+            <!-- Right column: status + results -->
+            <div class="lg:col-span-3 flex flex-col gap-5">
+
+                <!-- Idle / first-load state -->
+                <div id="idleState" class="bg-fcp-gray rounded-lg border border-fcp-border flex-1 flex flex-col items-center justify-center p-12 text-center min-h-[360px]">
+                    <div class="w-16 h-16 bg-fcp-accent/10 rounded-full flex items-center justify-center mb-4">
+                        <svg class="w-8 h-8 text-fcp-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-7a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-fcp-text font-semibold mb-2">Ready to transcribe</h3>
+                    <p class="text-fcp-text-secondary text-sm max-w-xs">Upload an audio or video file and click <strong class="text-fcp-text">Generate Subtitles</strong> to get started. The model runs entirely in your browser.</p>
+                    <p class="text-fcp-text-secondary text-xs mt-4 opacity-60">First run downloads the model (~75 MB for Base) — cached for future use.</p>
+                </div>
+
+                <!-- Processing state (hidden) -->
+                <div id="processingState" class="bg-fcp-gray rounded-lg border border-fcp-border p-8 hidden flex-col items-center justify-center min-h-[360px] text-center gap-5">
+                    <!-- Waveform animation -->
+                    <div class="flex items-end gap-1 h-10">
+                        <div class="wave-bar w-1.5 h-6 bg-fcp-accent rounded-full"></div>
+                        <div class="wave-bar w-1.5 h-10 bg-fcp-accent rounded-full"></div>
+                        <div class="wave-bar w-1.5 h-4 bg-fcp-accent rounded-full"></div>
+                        <div class="wave-bar w-1.5 h-8 bg-fcp-accent rounded-full"></div>
+                        <div class="wave-bar w-1.5 h-5 bg-fcp-accent rounded-full"></div>
+                    </div>
+
+                    <div>
+                        <p id="statusText" class="text-fcp-text font-semibold mb-1">Loading model…</p>
+                        <p id="statusSub" class="text-fcp-text-secondary text-sm">This may take a moment on first run</p>
+                    </div>
+
+                    <!-- Progress bar -->
+                    <div class="w-full max-w-sm bg-fcp-dark rounded-full h-1.5 overflow-hidden">
+                        <div id="progressBar" class="h-full bg-fcp-accent rounded-full progress-indeterminate"></div>
+                    </div>
+
+                    <p id="progressLabel" class="text-xs text-fcp-text-secondary"></p>
+                </div>
+
+                <!-- Results (hidden) -->
+                <div id="resultsState" class="hidden flex flex-col gap-4">
+
+                    <!-- Stats bar -->
+                    <div class="bg-fcp-gray rounded-lg border border-fcp-border px-5 py-3 flex flex-wrap gap-x-6 gap-y-2 text-sm">
+                        <span class="text-fcp-text-secondary">Segments: <span id="statSegments" class="text-fcp-text font-medium">—</span></span>
+                        <span class="text-fcp-text-secondary">Duration: <span id="statDuration" class="text-fcp-text font-medium">—</span></span>
+                        <span class="text-fcp-text-secondary">Language: <span id="statLanguage" class="text-fcp-text font-medium">—</span></span>
+                    </div>
+
+                    <!-- Transcript preview -->
+                    <div class="bg-fcp-gray rounded-lg border border-fcp-border flex flex-col overflow-hidden flex-1">
+                        <div class="px-5 py-3 border-b border-fcp-border flex items-center justify-between">
+                            <span class="text-sm font-medium text-fcp-text">Transcript Preview</span>
+                            <button id="copyBtn" class="text-xs text-fcp-accent hover:text-blue-300 transition-colors flex items-center gap-1">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                                Copy
+                            </button>
+                        </div>
+                        <textarea id="transcriptPreview" readonly
+                            class="flex-1 bg-transparent p-4 text-sm text-fcp-text font-mono resize-none focus:outline-none min-h-[300px]"
+                            placeholder="Transcript will appear here…"></textarea>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // ── DOM refs ─────────────────────────────────────────────────
+        const uploadArea       = document.getElementById('uploadArea');
+        const fileInput        = document.getElementById('fileInput');
+        const uploadIdle       = document.getElementById('uploadIdle');
+        const uploadLoaded     = document.getElementById('uploadLoaded');
+        const uploadedFilename = document.getElementById('uploadedFilename');
+        const uploadedFilemeta = document.getElementById('uploadedFilemeta');
+        const clearFile        = document.getElementById('clearFile');
+        const transcribeBtn    = document.getElementById('transcribeBtn');
+        const downloadBtn      = document.getElementById('downloadBtn');
+        const copyBtn          = document.getElementById('copyBtn');
+        const idleState        = document.getElementById('idleState');
+        const processingState  = document.getElementById('processingState');
+        const resultsState     = document.getElementById('resultsState');
+        const statusText       = document.getElementById('statusText');
+        const statusSub        = document.getElementById('statusSub');
+        const progressBar      = document.getElementById('progressBar');
+        const progressLabel    = document.getElementById('progressLabel');
+        const transcriptPreview = document.getElementById('transcriptPreview');
+
+        let currentFile       = null;
+        let transcriptContent = '';
+        let audioDuration     = 0;
+
+        // ── Web Worker ───────────────────────────────────────────────
+        const worker = new Worker('js/whisper-worker.js', { type: 'module' });
+
+        worker.onmessage = ({ data }) => {
+            switch (data.type) {
+                case 'status':
+                    statusText.textContent = data.text;
+                    statusSub.textContent  = data.sub ?? '';
+                    progressLabel.textContent = '';
+                    setProgress(null);
+                    break;
+
+                case 'dl-progress':
+                    statusText.textContent = 'Downloading model…';
+                    progressLabel.textContent = `${data.file}  ${Math.round(data.pct)}%`;
+                    setProgress(data.pct);
+                    break;
+
+                case 'result':
+                    showResults(data.output);
+                    break;
+
+                case 'error':
+                    showError(data.message);
+                    break;
+            }
+        };
+
+        worker.onerror = (e) => showError(e.message || 'Worker error');
+
+        function setProgress(pct) {
+            if (pct !== null) {
+                progressBar.classList.remove('progress-indeterminate');
+                progressBar.style.width = `${Math.max(2, pct)}%`;
+            } else {
+                progressBar.style.width = '';
+                progressBar.classList.add('progress-indeterminate');
+            }
+        }
+
+        // ── File upload ──────────────────────────────────────────────
+        uploadArea.addEventListener('click', (e) => {
+            if (!e.target.closest('#clearFile')) fileInput.click();
+        });
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('border-fcp-accent');
+        });
+        uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('border-fcp-accent'));
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('border-fcp-accent');
+            const file = e.dataTransfer.files[0];
+            if (file) setFile(file);
+        });
+        fileInput.addEventListener('change', (e) => { if (e.target.files[0]) setFile(e.target.files[0]); });
+        clearFile.addEventListener('click', (e) => { e.stopPropagation(); resetFile(); });
+
+        function setFile(file) {
+            currentFile = file;
+            uploadedFilename.textContent = file.name;
+            uploadedFilemeta.textContent = formatBytes(file.size);
+            uploadIdle.classList.add('hidden');
+            uploadLoaded.classList.remove('hidden');
+            transcribeBtn.disabled = false;
+        }
+
+        function resetFile() {
+            currentFile = null;
+            fileInput.value = '';
+            uploadIdle.classList.remove('hidden');
+            uploadLoaded.classList.add('hidden');
+            transcribeBtn.disabled = true;
+        }
+
+        // ── Transcribe ───────────────────────────────────────────────
+        transcribeBtn.addEventListener('click', () => { if (currentFile) startTranscription(); });
+
+        async function startTranscription() {
+            idleState.classList.add('hidden');
+            resultsState.classList.add('hidden');
+            processingState.classList.remove('hidden');
+            processingState.classList.add('flex');
+            transcribeBtn.disabled = true;
+            downloadBtn.disabled   = true;
+
+            statusText.textContent = 'Decoding audio…';
+            statusSub.textContent  = 'Resampling to 16 kHz';
+            setProgress(null);
+
+            try {
+                const audioData = await decodeAudio(currentFile);
+                const modelSize = document.querySelector('input[name="model"]:checked').value;
+                const language  = document.getElementById('languageSelect').value;
+
+                // Transfer the buffer (zero-copy) to the worker
+                worker.postMessage({ audioData, modelSize, language }, [audioData.buffer]);
+            } catch (err) {
+                showError('Audio decode failed: ' + err.message);
+            }
+        }
+
+        // Decode any audio/video file to a 16 kHz mono Float32Array
+        async function decodeAudio(file) {
+            const arrayBuffer = await file.arrayBuffer();
+
+            const tmpCtx      = new AudioContext();
+            const audioBuffer = await tmpCtx.decodeAudioData(arrayBuffer);
+            await tmpCtx.close();
+
+            audioDuration = audioBuffer.duration;
+
+            const TARGET_SR  = 16000;
+            const offlineCtx = new OfflineAudioContext(
+                1,
+                Math.ceil(audioBuffer.duration * TARGET_SR),
+                TARGET_SR
+            );
+
+            const source  = offlineCtx.createBufferSource();
+            source.buffer = audioBuffer;
+            source.connect(offlineCtx.destination);
+            source.start(0);
+
+            const rendered = await offlineCtx.startRendering();
+            return rendered.getChannelData(0); // Float32Array @ 16 kHz, mono
+        }
+
+        // ── Results ──────────────────────────────────────────────────
+        function showResults(output) {
+            const fmt    = document.getElementById('formatSelect').value;
+            const chunks = output.chunks ?? [];
+
+            if (fmt === 'srt')       transcriptContent = chunksToSRT(chunks);
+            else if (fmt === 'vtt')  transcriptContent = chunksToVTT(chunks);
+            else                     transcriptContent = output.text ?? '';
+
+            document.getElementById('statSegments').textContent = chunks.length || '—';
+            document.getElementById('statDuration').textContent  = fmtDuration(audioDuration);
+            const lang = document.getElementById('languageSelect').value;
+            document.getElementById('statLanguage').textContent  = lang === 'auto' ? 'Auto-detected' : lang.toUpperCase();
+
+            transcriptPreview.value = transcriptContent;
+
+            processingState.classList.add('hidden');
+            processingState.classList.remove('flex');
+            resultsState.classList.remove('hidden');
+
+            downloadBtn.disabled  = false;
+            transcribeBtn.disabled = false;
+        }
+
+        function showError(msg) {
+            statusText.textContent = 'Something went wrong';
+            statusSub.textContent  = msg;
+            progressLabel.textContent = '';
+            setProgress(null);
+            transcribeBtn.disabled = false;
+        }
+
+        // ── Formatting ───────────────────────────────────────────────
+        function chunksToSRT(chunks) {
+            return chunks
+                .filter(c => c.timestamp?.[0] != null)
+                .map((c, i) => {
+                    const s = c.timestamp[0];
+                    const e = c.timestamp[1] ?? s + 2;
+                    return `${i + 1}\n${srtTime(s)} --> ${srtTime(e)}\n${c.text.trim()}\n`;
+                })
+                .join('\n');
+        }
+
+        function chunksToVTT(chunks) {
+            const lines = ['WEBVTT', ''];
+            chunks.filter(c => c.timestamp?.[0] != null).forEach((c, i) => {
+                const s = c.timestamp[0];
+                const e = c.timestamp[1] ?? s + 2;
+                lines.push(`${i + 1}`, `${vttTime(s)} --> ${vttTime(e)}`, c.text.trim(), '');
+            });
+            return lines.join('\n');
+        }
+
+        function srtTime(s) {
+            return `${p2(Math.floor(s / 3600))}:${p2(Math.floor(s / 60) % 60)}:${p2(Math.floor(s % 60))},${p3(Math.round((s % 1) * 1000))}`;
+        }
+        function vttTime(s) {
+            return `${p2(Math.floor(s / 3600))}:${p2(Math.floor(s / 60) % 60)}:${p2(Math.floor(s % 60))}.${p3(Math.round((s % 1) * 1000))}`;
+        }
+        function p2(n) { return String(n).padStart(2, '0'); }
+        function p3(n) { return String(n).padStart(3, '0'); }
+        function fmtDuration(s) {
+            if (!s) return '—';
+            const h = Math.floor(s / 3600), m = Math.floor(s / 60) % 60, sec = Math.floor(s % 60);
+            return h ? `${h}h ${m}m ${sec}s` : m ? `${m}m ${sec}s` : `${sec}s`;
+        }
+        function formatBytes(b) {
+            return b < 1048576 ? (b / 1024).toFixed(1) + ' KB' : (b / 1048576).toFixed(1) + ' MB';
+        }
+
+        // ── Download & Copy ──────────────────────────────────────────
+        downloadBtn.addEventListener('click', () => {
+            if (!transcriptContent) return;
+            const fmt  = document.getElementById('formatSelect').value;
+            const ext  = fmt === 'vtt' ? 'vtt' : fmt === 'txt' ? 'txt' : 'srt';
+            const blob = new Blob([transcriptContent], { type: 'text/plain' });
+            const url  = URL.createObjectURL(blob);
+            const a    = document.createElement('a');
+            a.href = url; a.download = `transcript.${ext}`;
+            document.body.appendChild(a); a.click();
+            document.body.removeChild(a); URL.revokeObjectURL(url);
+        });
+
+        copyBtn.addEventListener('click', async () => {
+            if (!transcriptContent) return;
+            try {
+                await navigator.clipboard.writeText(transcriptContent);
+                const orig = copyBtn.innerHTML;
+                copyBtn.textContent = 'Copied!';
+                setTimeout(() => { copyBtn.innerHTML = orig; }, 1500);
+            } catch (_) {}
+        });
+    </script>
+</body>
+</html>
