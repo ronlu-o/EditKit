@@ -295,6 +295,17 @@
         let transcriptContent = '';
         let audioDuration     = 0;
 
+        // ── FFmpeg state (lazy-loaded only when a video is submitted) ─
+        let ffmpeg       = null;
+        let fetchFileFn  = null;
+        let toBlobURLFn  = null;
+        let ffmpegLoaded = false;
+
+        const VIDEO_EXTS = /\.(mp4|mov|avi|mkv|webm|m4v|flv|wmv|mts|m2ts)$/i;
+        function isVideo(file) {
+            return file.type.startsWith('video/') || VIDEO_EXTS.test(file.name);
+        }
+
         // ── Web Worker ───────────────────────────────────────────────
         const worker = new Worker('js/whisper-worker.js', { type: 'module' });
 
@@ -356,7 +367,7 @@
         function setFile(file) {
             currentFile = file;
             uploadedFilename.textContent = file.name;
-            uploadedFilemeta.textContent = formatBytes(file.size);
+            uploadedFilemeta.textContent = formatBytes(file.size) + (isVideo(file) ? ' · video' : ' · audio');
             uploadIdle.classList.add('hidden');
             uploadLoaded.classList.remove('hidden');
             transcribeBtn.disabled = false;
