@@ -391,24 +391,93 @@
             processingState.classList.add('flex');
             transcribeBtn.disabled = true;
             downloadBtn.disabled   = true;
-
-            statusText.textContent = 'Decoding audio…';
-            statusSub.textContent  = 'Resampling to 16 kHz';
             setProgress(null);
 
             try {
-                const audioData = await decodeAudio(currentFile);
+                let audioData;
+
+                if (isVideo(currentFile)) {
+                    audioData = await extractAudioWithFFmpeg(currentFile);
+                } else {
+                    statusText.textContent = 'Decoding audio…';
+                    statusSub.textContent  = 'Resampling to 16 kHz';
+                    audioData = await decodeAudio(currentFile);
+                }
+
                 const modelSize = document.querySelector('input[name="model"]:checked').value;
                 const language  = document.getElementById('languageSelect').value;
 
-                // Transfer the buffer (zero-copy) to the worker
+                statusText.textContent = 'Sending to Whisper…';
+                statusSub.textContent  = '';
+                setProgress(null);
+
                 worker.postMessage({ audioData, modelSize, language }, [audioData.buffer]);
             } catch (err) {
-                showError('Audio decode failed: ' + err.message);
+                showError(err.message);
             }
         }
 
-        // Decode any audio/video file to a 16 kHz mono Float32Array
+        // ── FFmpeg: load once, extract audio from video files ────────
+        async function ensureFFmpeg() {
+            if (ffmpegLoaded) return;
+
+            statusText.textContent = 'Loading FFmpeg…';
+            statusSub.textContent  = '~30 MB, cached after first use';
+            setProgress(null);
+
+            const [ffmpegMod, utilMod] = await Promise.all([
+                import('https://unpkg.com/@ffmpeg/ffmpeg@0.12.10/dist/esm/index.js'),
+                import('https://unpkg.com/@ffmpeg/util@0.12.1/dist/esm/index.js'),
+            ]);
+
+            fetchFileFn = utilMod.fetchFile;
+            toBlobURLFn = utilMod.toBlobURL;
+            ffmpeg      = new ffmpegMod.FFmpeg();
+
+            const base = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/esm';
+            await ffmpeg.load({
+                coreURL: await toBlobURLFn(`${base}/ffmpeg-core.js`,   'text/javascript'),
+                wasmURL: await toBlobURLFn(`${base}/ffmpeg-core.wasm`, 'application/wasm'),
+            });
+
+            ffmpegLoaded = true;
+        }
+
+        async function extractAudioWithFFmpeg(file) {
+            await ensureFFmpeg();
+
+            statusText.textContent = 'Extracting audio…';
+            statusSub.textContent  = 'Stripping video track, resampling to 16 kHz';
+            setProgress(null);
+
+            const ext    = file.name.split('.').pop() || 'mp4';
+            const inFile = `input.${ext}`;
+            const outFile = 'output.wav';
+
+            const onProgress = ({ progress }) => {
+                if (progress > 0 && progress <= 1) setProgress(Math.round(progress * 100));
+            };
+            ffmpeg.on('progress', onProgress);
+
+            await ffmpeg.writeFile(inFile, await fetchFileFn(file));
+            await ffmpeg.exec(['-i', inFile, '-vn', '-ar', '16000', '-ac', '1', '-f', 'wav', outFile]);
+            const wavData = await ffmpeg.readFile(outFile);
+
+            ffmpeg.off('progress', onProgress);
+            await ffmpeg.deleteFile(inFile);
+            await ffmpeg.deleteFile(outFile);
+
+            // WAV is already 16 kHz mono — just decode and grab channel data
+            const buf      = wavData.buffer.slice(wavData.byteOffset, wavData.byteOffset + wavData.byteLength);
+            const tmpCtx   = new AudioContext();
+            const decoded  = await tmpCtx.decodeAudioData(buf);
+            await tmpCtx.close();
+
+            audioDuration = decoded.duration;
+            return decoded.getChannelData(0);
+        }
+
+        // Decode audio-only files to a 16 kHz mono Float32Array
         async function decodeAudio(file) {
             const arrayBuffer = await file.arrayBuffer();
 
