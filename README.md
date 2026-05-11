@@ -1,46 +1,16 @@
-# <img src="logo.png" alt="EditKit Logo" width="40" height="40" align="left"> EditKit
+# React + Vite
 
-**Browser-Based Workflow Tools for Video Editors.**
+This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
-[🌐 **Visit EditKit**](https://editkit.net/)
+Currently, two official plugins are available:
 
-No installations, no servers, and no data collection; just powerful tools that run instantly in your web browser.
+- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
+- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
 
-## Why EditKit?
+## React Compiler
 
-EditKit solves common file and preparation tasks without ever leaving your machine.
+The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
 
-* **⚡ Zero Setup:** Open the page and start working immediately.
-* **🔒 Privacy First:** Your files never leave your machine; all processing happens client-side.
-* **🆓 Free & Open Source:** The tools are free forever and built on an MIT License.
+## Expanding the ESLint configuration
 
-## Tools Included
-
-Utilities that streamline other content creators' video workflow.
-
-* **Subtitle Converters:** Convert, merge, sync, and clean subtitle files (SRT, VTT, LRCX, etc.).
-* **SRT to FCPXML:** Convert subtitle files to Final Cut Pro XML title format with customizable settings.
-* **Color Grader:** Apply `.cube` LUT files with custom brightness and saturation controls to your images.
-
-## Why I Built This
-
-I've been stylizing and batch producing subtitles ever since I started creating content. There weren't many free softwares that helped with my workflow, so I started writing Python scripts to handle subtitle conversions, timing adjustments, and format cleanups: mostly piecing code together with limited programming knowledge from self-teaching.
-
-These tools come from those scripts, dating all the way back to 2022. And now that I've got more technological knowledge, I believe it was the adequate time to publish them.
-
-## Tech Stack
-
-EditKit is built entirely from static assets, making it fast and easy to host:
-
-* **Frontend:** HTML, CSS (Tailwind), and JavaScript.
-* **Core Logic:** Pyodide for complex Python processing running directly in the browser.
-
-## Contributing
-
-Contributions are always welcomed! If you found a bug or have a great feature idea, please [open an issue here](https://github.com/ronlu-o/EditKit/issues) or submit a pull request.
-
-[!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/ronapps)
-
-## Credits & Acknowledgments
-
-* **SRT to FCPXML converter** is based on [srt2fcpxml](https://github.com/GanymedeNil/srt2fcpxml) by GanymedeNil, ported to Python with browser compatibility and additional features.
+If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
